@@ -3,10 +3,15 @@
 
 #include "config.h"
 
-#define true     1
-#define false    0
+#ifndef false
+#define false      0
+#endif
 
- /* define the Key codes */
+#ifndef true
+#define true       (!false)
+#endif
+
+/* define the Key codes */
 #define KEY_NUL    0      /**< ^@ Null character */
 #define KEY_SOH    1      /**< ^A Start of heading, = console interrupt */
 #define KEY_STX    2      /**< ^B Start of text, maintenance mode on HP console */
@@ -64,15 +69,14 @@ typedef struct {
 #endif
 
 typedef enum echo_ {
-	ONCE,
-	ON,
-	OFF
+  ONCE,
+  ON,
+  OFF
 } echo_t;
 
 #define ECHO_IS_ON()         ((pThis->echo) == (ON))
 #define ECHO_IS_OFF()        ((pThis->echo) == (OFF))
 #define ECHO_IS_ONCE()       ((pThis->echo) == (ONCE))
-
 
 // microrl struct, contain internal library data
 typedef struct {
@@ -96,17 +100,17 @@ typedef struct {
 #ifdef _USE_CTLR_C
   void (*sigint) (void);
 #endif
-	echo_t echo;
-	int start_password;  // position when start printing * 
+  echo_t echo;
+  int start_password;  // position when start printing *
 } microrl_t;
 
 // init internal data, calls once at start up
 void microrl_init (microrl_t * pThis, void (*print)(const char*));
 
 // set echo mode (ON/OFF/ONCE), using for disabling echo for password input
-// using ONCE for disabling echo for password input, 
+// using ONCE for disabling echo for password input,
 // echo mode will enabled after user press Enter.
-// use ON and OFF for turning echo off and on manualy. 
+// use ON and OFF for turning echo off and on manualy.
 void microrl_set_echo (microrl_t * pThis, echo_t echo);
 
 // set pointer to callback complition func, that called when user press 'Tab'
