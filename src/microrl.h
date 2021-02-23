@@ -1,7 +1,7 @@
 #ifndef _MICRORL_H_
 #define _MICRORL_H_
 
-#include "config.h"
+#include "microrl_config.h"
 
 #ifndef false
 #define false      0

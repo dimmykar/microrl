@@ -7,7 +7,7 @@ Microrl library is designed to help implement command line interface in small an
 
 ## 2. FEATURE
 
-  - `config.h` file
+  - `microrl_config.h` file
     * Turn on/off feature for add functional/decrease memory via config files.
 
   - hot keys support
@@ -42,7 +42,7 @@ Microrl library is designed to help implement command line interface in small an
 src/               - library source
   microrl.c        - microrl routines
   microrl.h        - lib interface and data type
-  config.h         - customisation config-file
+  microrl_config.h - customisation config-file
 examples/          - library usage examples
   avr_misc/        - avr specific routines for avr example
   unix_misc/       - unix specific routines for desktop example
@@ -77,7 +77,7 @@ c) Call `microrl_set_execute_callback()` with pointer to you routine, what will 
 
 d) If you want completion support if user press TAB key, call `microrl_set_complete_callback()` and set you callback. It also give `argc` and `argv` arguments, so iterate through it and return set of complete variants. 
 
-e) Look at `config.h` file, for tune library for you requiring. 
+e) Look at `microrl_config.h` file, for tune library for you requiring. 
 
 f) Now you just call `microrl_insert_char()` on each char received from input stream (usart, network, etc).
 
