@@ -11,10 +11,10 @@ all: microrl_test
 
 
 microrl_test: example.o ../src/microrl.o  unix_misc/unix_misc.o
-	$(CC) $^ -o $@ $(LDFLAGS)
+  $(CC) $^ -o $@ $(LDFLAGS)
 
 %.o: %.c
-	$(CC) -c $< $(CCFLAGS) -o $(*).o
+  $(CC) -c $< $(CCFLAGS) -o $(*).o
 
 clean:
-	rm -f unix_misc/*.o ../src/*.o *.o $(TARGET)*
+  rm -f unix_misc/*.o ../src/*.o *.o $(TARGET)*
