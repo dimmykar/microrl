@@ -1,42 +1,44 @@
-microrl - micro read line library for small and embedded devices with basic VT100 support.
+# microrl - micro read line library for small and embedded devices with basic VT100 support
 
-1. DESCRIPTION
+## 1. DESCRIPTION
 
 Microrl library is designed to help implement command line interface in small and embedded devices. Main goal is to write compact, small memory consuming but powerful interfaces, with support navigation through command line with cursor, HOME, END keys, hot key like Ctrl+U and other, history and completion feature.
 
 
-2. FEATURE
+## 2. FEATURE
 
-  ** config.h file
-   - Turn on/off feature for add functional/decrease memory via config files.
+  - `config.h` file
+    * Turn on/off feature for add functional/decrease memory via config files.
 
-  ** hot keys support
-   - backspace, cursor arrow, HOME, END keys
-   - Ctrl+U (cut line from cursor to begin) 
-   - Ctrl+K (cut line from cursor to end) 
-   - Ctrl+A (like HOME) 
-   - Ctrl+E (like END)
-   - Ctrl+H (like backspace)
-   - Ctrl+B (like cursor arrow left) 
-   - Ctrl+F (like cursor arrow right)
-   - Ctrl+P (like cursor arrow up)
-   - Ctrl+N (like cursor arrow down)
-   - Ctrl+R (retype prompt and partial command)
-   - Ctrl+C (call 'sigint' callback, only for embedded system)
+  - hot keys support
+    * backspace, cursor arrow, HOME, END keys
+    * Ctrl+U (cut line from cursor to begin) 
+    * Ctrl+K (cut line from cursor to end) 
+    * Ctrl+A (like HOME) 
+    * Ctrl+E (like END)
+    * Ctrl+H (like backspace)
+    * Ctrl+B (like cursor arrow left) 
+    * Ctrl+F (like cursor arrow right)
+    * Ctrl+P (like cursor arrow up)
+    * Ctrl+N (like cursor arrow down)
+    * Ctrl+R (retype prompt and partial command)
+    * Ctrl+C (call `sigint()` callback, only for embedded system)
 
-  ** history
-   - Static ring buffer history for memory saving. Number of commands saved to history depends from commands length and buffer size (defined in config)
+  - history
+    * Static ring buffer history for memory saving. Number of commands saved to history depends from commands length and buffer size (defined in config)
 
-  ** completion
-   - via completion callback
+  - completion
+    * via completion callback
 
-	** echo
-	 - use "microrl_set_echo" function to turn on or turn off echo.
-	 - could be used to print * insted of real characters.
+  - echo
+    * use `microrl_set_echo()` function to turn on or turn off echo.
+    * could be used to print `*` insted of real characters.
+
 ![Window of terminal with microrl library](https://s8.hostingkartinok.com/uploads/images/2017/12/62be1f601c0d64fcf142597c1610147d.png)  	 
 
-3. SRC STRUCTURE
+## 3. SRC STRUCTURE
 
+```
 src/               - library source
   microrl.c        - microrl routines
   microrl.h        - lib interface and data type
@@ -49,35 +51,38 @@ examples/          - library usage examples
   example_misc.h   - interface to platform specific routines for example build (avr, unix)
   Makefile         - unix example build (gcc)
   Makefile.avr     - avr example build (avr-gcc)
+```
 
 
-4. INSTALL
+## 4. INSTALL
 
 Requirements: C compiler with support for C99 standard (GNU GCC, Keil, IAR) with standard C library (libc, uClibc or other compatible). Also you have to implement several routines in your own code for library to work. 
-NOTE: need add -std=gnu99 arg for gcc
+__NOTE:__ need add `-std=gnu99` arg for gcc
 
 For embed lib to you project, you need to do few simple steps:
 
-a) Include microrl.h file to you project.
+a) Include `microrl.h` file to you project.
 
-b) Create 'microrl_t' object, and call 'microrl_init' func, with print callback pointer. Print callback pointer is pointer to function that call by library if it's need to put text to terminal. Text string always is null terminated.
+b) Create `microrl_t` object, and call `microrl_init()` func, with print callback pointer. Print callback pointer is pointer to function that call by library if it's need to put text to terminal. Text string always is null terminated.
 For example on linux PC print callback may be:
+```
   // print callback for microrl library
   void print (char * str)
   {
     fprintf (stdout, "%s", str);
   }
+```
 
-c) Call 'microrl_set_execute_callback' with pointer to you routine, what will be called if user press enter in terminal. Execute callback give a 'argc', 'argv' parametrs, like 'main' func in application. All token in 'argv' is null terminated. So you can simply walk through argv and handle commands.
+c) Call `microrl_set_execute_callback()` with pointer to you routine, what will be called if user press enter in terminal. Execute callback give a `argc`, `argv` parametrs, like `main()` func in application. All token in `argv` is null terminated. So you can simply walk through `argv` and handle commands.
 
-d) If you want completion support if user press TAB key, call 'microrl_set_complete_callback' and set you callback. It also give 'argc' and 'argv' arguments, so iterate through it and return set of complete variants. 
+d) If you want completion support if user press TAB key, call `microrl_set_complete_callback()` and set you callback. It also give `argc` and `argv` arguments, so iterate through it and return set of complete variants. 
 
-e) Look at 'config.h' file, for tune library for you requiring. 
+e) Look at `config.h` file, for tune library for you requiring. 
 
-f) Now you just call 'microrl_insert_char' on each char received from input stream (usart, network, etc).
+f) Now you just call `microrl_insert_char()` on each char received from input stream (usart, network, etc).
 
 Example of code:
-
+```
   //*****************************************************************************
   int main (int argc, char ** argv)
   {
@@ -100,6 +105,7 @@ Example of code:
     }
     return 0;
   }
+```
 
 See examples library usage.
 
