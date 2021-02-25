@@ -11,15 +11,15 @@ extern "C" {
 extern microrl_t * prl;
 
 // print to stream callback
-void print (const char * str);
+void print (void * pThis, const char * str);
 
 // execute callback
-int execute (int argc, const char * const * argv);
+int execute (void * pThis, int argc, const char * const * argv);
 
 // completion callback
-char ** complet (int argc, const char * const * argv);
+char ** complet (void * pThis, int argc, const char * const * argv);
 
 // ctrl+c callback
-void sigint (void);
+void sigint (void * pThis);
 
 #endif /* _MICRORL_MISC_H_ */
