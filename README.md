@@ -31,6 +31,9 @@ Microrl library is designed to help implement command line interface in small an
   - completion
     * via completion callback
 
+  - quoting (optional)
+    * Use single or double quotes around a command argument that needs to include space characters
+
   - echo
     * use `microrl_set_echo()` function to turn on or turn off echo.
     * could be used to print `*` insted of real characters.
