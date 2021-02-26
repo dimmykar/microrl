@@ -5,15 +5,15 @@ Autor: Eugene Samoylov aka Helius (ghelius@gmail.com)
 #ifndef _MICRORL_CONFIG_H_
 #define _MICRORL_CONFIG_H_
 
-#define MICRORL_LIB_VER    "1.5.1"
+#define MICRORL_LIB_VER        "1.6.0-RC1"
 
 /*********** CONFIG SECTION **************/
 /*
 Command line length, define cmdline buffer size. Set max number of chars + 1,
 because last byte of buffer need to contain '\0' - NULL terminator, and 
 not use for storing inputed char.
-If user input chars more then it parametrs-1, chars not added to command line.*/
-#define _COMMAND_LINE_LEN    (1+100)                  // for 32 chars
+If user input chars more then it parametrs - 1, chars not added to command line.*/
+#define _COMMAND_LINE_LEN      (1 + 100)                  // for 100 chars
 
 /*
 Command token number, define max token it command line, if number of token 
@@ -21,19 +21,19 @@ typed in command line exceed this value, then prints message about it and
 command line not to be parced and 'execute' callback will not calls.
 Token is word separate by white space, for example 3 token line:
 "IRin> set mode test" */
-#define _COMMAND_TOKEN_NMB    8
+#define _COMMAND_TOKEN_NMB     8
 
 /*
 Define you prompt string here. You can use colors escape code, for highlight you prompt,
 for example this prompt will green color (if you terminal supports color)*/
-//#define _PROMPT_DEFAULT    "\033[32mIRin >\033[0m "  // green color
-#define _PROMPT_DEFAULT    "\033[32mIRin >\033[0m "  // green color
-//#define _PROMPT_DEFAULT    "IRin > "
+//#define _PROMPT_DEFAULT        "\033[32mIRin >\033[0m "  // green color
+#define _PROMPT_DEFAULT        "\033[32mIRin >\033[0m "  // green color
+//#define _PROMPT_DEFAULT        "IRin > "
 
 /*
 Define prompt text (without ESC sequence, only text) prompt length, it needs because if you use
 ESC sequence, it's not possible detect only text length*/
-#define _PROMPT_LEN       7
+#define _PROMPT_LEN            7
 
 /*Define it, if you wanna use completion functional, also set completion callback in you code,
 now if user press TAB calls 'copmlitetion' callback. If you no need it, you can just set 
@@ -53,7 +53,7 @@ prints message about it and the command line is not parsed and 'execute'
 callback is not called.
 Quoting protects whitespace, for example 2 quoted tokens:
 "IRin> set wifi 'Home Net' 'this is a secret'" */
-#define _QUOTED_TOKEN_NMB 2
+#define _QUOTED_TOKEN_NMB      2
 
 /*Define it, if you wanna use history. It s work's like bash history, and
 set stored value to cmdline, if UP and DOWN key pressed. Using history add
@@ -66,7 +66,12 @@ For saving memory, each entered cmdline store to history in ring buffer,
 so we can not say, how many line we can store, it depends from cmdline len,
 but memory using more effective. We not prefer dinamic memory allocation for
 small and embedded devices. Overhead is 2 char on each saved line*/
-#define _RING_HISTORY_LEN    64
+#define _RING_HISTORY_LEN      64
+
+/*
+Size of the buffer used for piecemeal printing of part or all of the command
+line.  Allocated on the stack.  Must be at least 16. */
+#define _PRINT_BUFFER_LEN      40
 
 /*
 Enable Handling terminal ESC sequence. If disabling, then cursor arrow, HOME, END will not work,
@@ -74,12 +79,19 @@ use Ctrl+A(B,F,P,N,A,E,H,K,U,C) see README, but decrease code memory.*/
 #define _USE_ESC_SEQ
 
 /*
-Use snprintf from you standard complier library, but it gives some overhead.
-If not defined, use my own u16int_to_str variant, it's save about 800 byte of code size
-on AVR (avr-gcc build).
+Use sprintf from you standard complier library, but it gives some overhead.
+If not defined, use my own number conversion code, it's save about 800 byte of
+code size on AVR (avr-gcc build).
 Try to build with and without, and compare total code size for tune library.
 */
 #define _USE_LIBC_STDIO
+
+/*
+Use a single carriage return character to move the cursor to the left margin
+rather than moving left by a large number.  This reduces the number of
+characters sent to the terminal, but should be left undefined if the terminal
+will also simulate a linefeed when it receives the carriage return. */
+#define _USE_CARRIAGE_RETURN
 
 /*
 Enable 'interrupt signal' callback, if user press Ctrl+C */
