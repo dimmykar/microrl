@@ -12,11 +12,13 @@ BUGS and TODO:
 #include <stdio.h>
 #endif
 
-//#define DBG(...)    do {                             \
+/*
+#define DBG(...)    do {                             \
                         fprintf(stderr, "\033[33m"); \
                         fprintf(stderr,__VA_ARGS__); \
                         fprintf(stderr,"\033[0m");   \
                     } while (0)
+*/
 
 char * prompt_default = _PROMPT_DEFAULT;
 
@@ -219,7 +221,7 @@ static int split (microrl_t * pThis, int limit, char const ** tkn_arr)
   iq = 0;
 #endif
   while (1) {
-    // go to the first NOT whitespace (not zerro for us)
+    // go to the first NOT whitespace (not zero for us)
     while ((pThis->cmdline [ind] == '\0') && (ind < limit)) {
       ind++;
     }
@@ -242,7 +244,7 @@ static int split (microrl_t * pThis, int limit, char const ** tkn_arr)
 #endif
       return -1;
     }
-    // go to the first whitespace (zerro for us)
+    // go to the first whitespace (zero for us)
     while (ind < limit) {
       if (pThis->cmdline [ind] == '\0') {
 #ifdef _USE_QUOTING

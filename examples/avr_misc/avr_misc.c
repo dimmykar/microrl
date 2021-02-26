@@ -14,8 +14,8 @@ AVR platform specific implementation routines (for Atmega8, rewrite for your MC)
 #define _CMD_CLR      "clear_port"
 #define _CMD_SET      "set_port"
 // arguments for set/clear
-  #define _SCMD_PB    "port_b"
-  #define _SCMD_PD    "port_d"
+#define _SCMD_PB      "port_b"
+#define _SCMD_PD      "port_d"
 
 #define _NUM_OF_CMD              4
 #define _NUM_OF_SETCLEAR_SCMD    2
@@ -50,7 +50,7 @@ void init (void)
 //}
 
 //*****************************************************************************
-void print (void * pThis, const char * str)
+void print (microrl_t * pThis, const char * str)
 {
   int i = 0;
   while (str [i] != 0) {
@@ -67,7 +67,7 @@ char get_char (void)
 }
 
 //*****************************************************************************
-void print_help (void * pThis)
+void print_help (microrl_t * pThis)
 {
   print (pThis, "Use TAB key for completion\n\rCommand:\n\r");
   print (pThis, "\tclear               - clear screen\n\r");
@@ -76,7 +76,7 @@ void print_help (void * pThis)
 }
 
 //*****************************************************************************
-void set_port_val (void * pThis, unsigned char * port, int pin, int val)
+void set_port_val (microrl_t * pThis, unsigned char * port, int pin, int val)
 {
   if ((*port == PORTD) && (pin < 2) && (pin > 7)) {
     print (pThis, "only 2..7 pin avialable for PORTD\n\r");
@@ -98,7 +98,7 @@ void set_port_val (void * pThis, unsigned char * port, int pin, int val)
 //*****************************************************************************
 // execute callback for microrl library
 // do what you want here, but don't write to argv!!! read only!!
-int execute (void * pThis, int argc, const char * const * argv)
+int execute (microrl_t * pThis, int argc, const char * const * argv)
 {
   int i = 0;
   // just iterate through argv word and compare it with your commands
@@ -156,7 +156,7 @@ int execute (void * pThis, int argc, const char * const * argv)
 #ifdef _USE_COMPLETE
 //*****************************************************************************
 // completion callback for microrl library
-char ** complet (void * pThis, int argc, const char * const * argv)
+char ** complet (microrl_t * pThis, int argc, const char * const * argv)
 {
   int j = 0;
 
@@ -196,7 +196,7 @@ char ** complet (void * pThis, int argc, const char * const * argv)
 #endif
 
 //*****************************************************************************
-void sigint (void * pThis)
+void sigint (microrl_t * pThis)
 {
   print (pThis, "^C catched!\n\r");
 }
