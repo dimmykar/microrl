@@ -543,10 +543,10 @@ static void microrl_delete (microrl_t * pThis)
 //*****************************************************************************
 static int common_len (char ** arr)
 {
-  int i;
-  int j;
+  size_t i;
+  size_t j;
   char *shortest = arr[0];
-  int shortlen = strlen(shortest);
+  size_t shortlen = strlen(shortest);
 
   for (i = 0; arr[i] != NULL; ++i)
     if (strlen(arr[i]) < shortlen) {
@@ -612,7 +612,7 @@ static void microrl_get_complite (microrl_t * pThis)
 #endif
 
 //*****************************************************************************
-void new_line_handler(microrl_t * pThis){
+static void new_line_handler(microrl_t * pThis){
   char const * tkn_arr [_COMMAND_TOKEN_NMB];
   int status;
 
