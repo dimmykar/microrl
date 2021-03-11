@@ -54,8 +54,8 @@ extern "C" {
 #define IS_CONTROL_CHAR(x)    ((x) <= 31)
 
 // direction of history navigation
-#define _HIST_UP      0
-#define _HIST_DOWN    1
+#define _HIST_UP        0
+#define _HIST_DOWN      1
 // esc seq internal codes
 #define _ESC_BRACKET    1
 #define _ESC_HOME       2
@@ -92,7 +92,6 @@ typedef enum echo_ {
 
 // microrl struct, contain internal library data
 typedef struct microrl microrl_t;
-
 struct microrl {
 #ifdef _USE_ESC_SEQ
   char escape_seq;
