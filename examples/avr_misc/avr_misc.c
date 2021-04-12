@@ -21,12 +21,12 @@ AVR platform specific implementation routines (for Atmega8, rewrite for your MC)
 #define _NUM_OF_SETCLEAR_SCMD    2
 
 //available  commands
-char * keyworld[] = {_CMD_HELP, _CMD_CLEAR, _CMD_SET, _CMD_CLR};
+char* keyworld[] = {_CMD_HELP, _CMD_CLEAR, _CMD_SET, _CMD_CLR};
 // 'set/clear' command argements
-char * set_clear_key[] = {_SCMD_PB, _SCMD_PD};
+char* set_clear_key[] = {_SCMD_PB, _SCMD_PD};
 
 // array for comletion
-char * compl_world[_NUM_OF_CMD + 1];
+char* compl_world[_NUM_OF_CMD + 1];
 
 
 void put_char(unsigned char ch);
@@ -48,7 +48,7 @@ void init(void) {
 //}
 
 //*****************************************************************************
-void print(microrl_t * pThis, const char * str) {
+void print(microrl_t* pThis, const char* str) {
     int i = 0;
     while (str[i] != 0) {
         while (!(UCSRA & (1 << UDRE)));
@@ -63,7 +63,7 @@ char get_char(void) {
 }
 
 //*****************************************************************************
-void print_help(microrl_t * pThis) {
+void print_help(microrl_t* pThis) {
     print(pThis, "Use TAB key for completion\n\rCommand:\n\r");
     print(pThis, "\tclear               - clear screen\n\r");
     print(pThis, "\tset_port port pin   - set 1 port[pin] value, support only 'port_b' and 'port_d'\n\r");
@@ -71,7 +71,7 @@ void print_help(microrl_t * pThis) {
 }
 
 //*****************************************************************************
-void set_port_val(microrl_t * pThis, unsigned char * port, int pin, int val) {
+void set_port_val(microrl_t* pThis, unsigned char* port, int pin, int val) {
     if ((*port == PORTD) && (pin < 2) && (pin > 7)) {
         print(pThis, "only 2..7 pin avialable for PORTD\n\r");
         return;
@@ -92,7 +92,7 @@ void set_port_val(microrl_t * pThis, unsigned char * port, int pin, int val) {
 //*****************************************************************************
 // execute callback for microrl library
 // do what you want here, but don't write to argv!!! read only!!
-int execute(microrl_t * pThis, int argc, const char * const * argv) {
+int execute(microrl_t* pThis, int argc, const char** const argv) {
     int i = 0;
     // just iterate through argv word and compare it with your commands
     while (i < argc) {
@@ -110,12 +110,12 @@ int execute(microrl_t * pThis, int argc, const char * const * argv) {
                    (strcmp(argv[i], _CMD_CLR) == 0)) {
             if (++i < argc) {
                 int val = strcmp(argv[i - 1], _CMD_CLR);
-                unsigned char * port = NULL;
+                unsigned char* port = NULL;
                 int pin = 0;
             if (strcmp(argv[i], _SCMD_PD) == 0) {
-                port = (unsigned char *)&PORTD;
+                port = (unsigned char*)&PORTD;
             } else if (strcmp(argv[i], _SCMD_PB) == 0) {
-                port = (unsigned char *)&PORTB;
+                port = (unsigned char*)&PORTB;
             } else {
                 print(pThis, "only '");
                 print(pThis, _SCMD_PB);
@@ -145,7 +145,7 @@ int execute(microrl_t * pThis, int argc, const char * const * argv) {
 #ifdef _USE_COMPLETE
 //*****************************************************************************
 // completion callback for microrl library
-char ** complet(microrl_t * pThis, int argc, const char * const * argv) {
+char ** complet(microrl_t* pThis, int argc, const char** const argv) {
     int j = 0;
 
     compl_world[0] = NULL;
@@ -153,7 +153,7 @@ char ** complet(microrl_t * pThis, int argc, const char * const * argv) {
     // if there is token in cmdline
     if (argc == 1) {
         // get last entered token
-        char * bit = (char*)argv[argc - 1];
+        char* bit = (char*)argv[argc - 1];
         // iterate through our available token and match it
         for (int i = 0; i < _NUM_OF_CMD; i++) {
             // if token is matched (text is part of our token starting from 0 char)
@@ -184,6 +184,6 @@ char ** complet(microrl_t * pThis, int argc, const char * const * argv) {
 #endif
 
 //*****************************************************************************
-void sigint(microrl_t * pThis) {
+void sigint(microrl_t* pThis) {
     print(pThis, "^C catched!\n\r");
 }

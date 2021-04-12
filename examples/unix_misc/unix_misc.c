@@ -13,7 +13,7 @@ void init(void) {
 
 //*****************************************************************************
 // print callback for microrl library
-void print(microrl_t * pThis, const char * str) {
+void print(microrl_t* pThis, const char* str) {
     fprintf(stdout, "%s", str);
 }
 
@@ -48,12 +48,12 @@ char get_char(void) {
 #define _NUM_OF_VER_SCMD    2
 
 //available  commands
-char * keyworld[] = {_CMD_HELP, _CMD_CLEAR, _CMD_LIST, _CMD_NAME, _CMD_VER, _CMD_LISP};
+char* keyworld[] = {_CMD_HELP, _CMD_CLEAR, _CMD_LIST, _CMD_NAME, _CMD_VER, _CMD_LISP};
 // version subcommands
-char * ver_keyworld[] = {_SCMD_MRL, _SCMD_DEMO};
+char* ver_keyworld[] = {_SCMD_MRL, _SCMD_DEMO};
 
 // array for comletion
-char * compl_world[_NUM_OF_CMD + 1];
+char* compl_world[_NUM_OF_CMD + 1];
 
 // 'name' var for store some string
 #define _NAME_LEN    8
@@ -62,7 +62,7 @@ int val;
 
 
 //*****************************************************************************
-void print_help(microrl_t * pThis) {
+void print_help(microrl_t* pThis) {
     print (pThis, "Use TAB key for completion\n\rCommand:\n\r");
     print (pThis, "\tversion {microrl | demo} - print version of microrl lib or version of this demo src\n\r");
     print (pThis, "\thelp  - this message\n\r");
@@ -75,7 +75,7 @@ void print_help(microrl_t * pThis) {
 //*****************************************************************************
 // execute callback for microrl library
 // do what you want here, but don't write to argv!!! read only!!
-int execute(microrl_t * pThis, int argc, const char * const * argv) {
+int execute(microrl_t* pThis, int argc, const char** const argv) {
     int i = 0;
     // just iterate through argv word and compare it with your commands
     while (i < argc) {
@@ -129,7 +129,7 @@ int execute(microrl_t * pThis, int argc, const char * const * argv) {
 #ifdef _USE_COMPLETE
 //*****************************************************************************
 // completion callback for microrl library
-char ** complet(microrl_t * pThis, int argc, const char * const * argv) {
+char ** complet(microrl_t* pThis, int argc, const char** const argv) {
     int j = 0;
 
     compl_world[0] = NULL;
@@ -137,7 +137,7 @@ char ** complet(microrl_t * pThis, int argc, const char * const * argv) {
     // if there is token in cmdline
     if (argc == 1) {
         // get last entered token
-        char * bit = (char*)argv[argc - 1];
+        char* bit = (char*)argv[argc - 1];
         // iterate through our available token and match it
         for (int i = 0; i < _NUM_OF_CMD; i++) {
             // if token is matched (text is part of our token starting from 0 char)
@@ -167,6 +167,6 @@ char ** complet(microrl_t * pThis, int argc, const char * const * argv) {
 #endif
 
 //*****************************************************************************
-void sigint(microrl_t * pThis) {
+void sigint(microrl_t* pThis) {
     print (pThis, "^C catched!\n\r");
 }

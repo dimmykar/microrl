@@ -5,10 +5,10 @@
 
 // create microrl object and pointer on it
 microrl_t rl;
-microrl_t * prl = &rl;
+microrl_t* prl = &rl;
 
 //*****************************************************************************
-int main (void/*int argc, char ** argv*/) {
+int main (void/*int argc, char** argv*/) {
     init();
     // call init with ptr to microrl instance and print callback
     microrl_init(prl, print);

@@ -4,11 +4,11 @@ extern "C" {
 }
 #include "esp8266_misc.h"
 
-extern void microrl_init(microrl_t * pThis, void (*print) (microrl_t*, const char *));
+extern void microrl_init(microrl_t* pThis, void (*print) (microrl_t*, const char*));
 
 // create microrl object and pointer on it
 microrl_t rl;
-microrl_t * prl = &rl;
+microrl_t* prl = &rl;
 
 void setup() {
     // call init with ptr to microrl instance and print callback

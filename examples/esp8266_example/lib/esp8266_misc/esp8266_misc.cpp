@@ -15,12 +15,12 @@ ESP8266 platform specific implementation routines.
 #define _CMD_LOGIN    "login"
 
 //*****************************************************************************
-void print(microrl_t * pThis, const char * str) {
+void print(microrl_t* pThis, const char* str) {
     Serial.print(str);
 }
 
 //*****************************************************************************
-void print_help(microrl_t * pThis) {
+void print_help(microrl_t* pThis) {
     print(pThis, "clean              - clear screen\n\r");
     print(pThis, "login YOUR_LOGIN   - admin in this example\n\r");
     print(pThis, "if login is correct, you will be asked to enter password.\n\r");
@@ -29,7 +29,7 @@ void print_help(microrl_t * pThis) {
 //*****************************************************************************
 // execute callback for microrl library
 // do what you want here, but don't write to argv!!! read only!!
-int execute(microrl_t * pThis, int argc, const char * const * argv) {
+int execute(microrl_t* pThis, int argc, const char** const argv) {
     static int pass_word = 0;
     int i = 0;
     // just iterate through argv word and compare it with your commands
