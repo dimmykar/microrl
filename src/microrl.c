@@ -1,24 +1,54 @@
+/**
+ * \file            microrl.c
+ * \brief           MicroRL library
+ */
+
 /*
-Author: Samoylov Eugene aka Helius (ghelius@gmail.com)
-BUGS and TODO:
--- rewrite history for use more than 256 byte buffer
-*/
+ * Copyright (c) 2011 Eugene SAMOYLOV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * This file is part of MicroRL - Micro Read Line library for small and embedded devices.
+ *
+ * Author:          Eugene SAMOYLOV aka Helius <ghelius@gmail.com>
+ * Author:          Dmitry KARASEV <karasevsdmitry@yandex.ru>
+ * Version:         1.6.1
+ */
+
+/*
+ * BUGS and TODO:
+ * -- rewrite history for use more than 256 byte buffer
+ */
 
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include "microrl.h"
 #ifdef _USE_LIBC_STDIO
 #include <stdio.h>
 #endif /* _USE_LIBC_STDIO */
+#include "microrl.h"
 
 char* prompt_default = _PROMPT_DEFAULT;
 
 #ifdef _USE_HISTORY
 
 #ifdef _HISTORY_DEBUG
-//*****************************************************************************
-// print buffer content on screen
+/**
+ * \brief           print buffer content on screen
+ * \param[in]       
+ *
+ * \return          
+ */
 static void print_hist(ring_history_t* pThis) {
     printf("\n");
     for (int i = 0; i < _RING_HISTORY_LEN; i++) {
@@ -47,8 +77,12 @@ static void print_hist(ring_history_t* pThis) {
 }
 #endif /* _HISTORY_DEBUG */
 
-//*****************************************************************************
-// remove older message from ring buffer
+/**
+ * \brief           remove older message from ring buffer
+ * \param[in]       
+ *
+ * \return          
+ */
 static void hist_erase_older(ring_history_t* pThis) {
     int new_pos = pThis->begin + pThis->ring_buf[pThis->begin] + 1;
     if (new_pos >= _RING_HISTORY_LEN) {
@@ -58,8 +92,12 @@ static void hist_erase_older(ring_history_t* pThis) {
     pThis->begin = new_pos;
 }
 
-//*****************************************************************************
-// check space for new line, remove older while not space
+/**
+ * \brief           check space for new line, remove older while not space
+ * \param[in]       
+ *
+ * \return          
+ */
 static int hist_is_space_for_new(ring_history_t* pThis, int len) {
     if (pThis->ring_buf[pThis->begin] == 0) {
         return true;
@@ -76,8 +114,12 @@ static int hist_is_space_for_new(ring_history_t* pThis, int len) {
     return false;
 }
 
-//*****************************************************************************
-// put line to ring buffer
+/**
+ * \brief           put line to ring buffer
+ * \param[in]       
+ *
+ * \return          
+ */
 static void hist_save_line(ring_history_t* pThis, char* line, int len) {
     if (len > (_RING_HISTORY_LEN - 2)) {
         return;
@@ -113,8 +155,12 @@ static void hist_save_line(ring_history_t* pThis, char* line, int len) {
 #endif /* _HISTORY_DEBUG */
 }
 
-//*****************************************************************************
-// copy saved line to 'line' and return size of line
+/**
+ * \brief           copy saved line to 'line' and return size of line
+ * \param[in]       
+ *
+ * \return          
+ */
 static int hist_restore_line(ring_history_t* pThis, char* line, int dir) {
     int cnt = 0;
     // count history record
@@ -192,8 +238,12 @@ static int hist_restore_line(ring_history_t* pThis, char* line, int dir) {
 
 
 #ifdef _USE_QUOTING
-//*****************************************************************************
-// restore end quote marks in cmdline
+/**
+ * \brief           restore end quote marks in cmdline
+ * \param[in]       
+ *
+ * \return          
+ */
 static void restore(microrl_t* pThis) {
     int iq;
     for (iq = 0; iq < _QUOTED_TOKEN_NMB; ++iq) {
@@ -208,9 +258,13 @@ static void restore(microrl_t* pThis) {
 }
 #endif /* _USE_QUOTING */
 
-//*****************************************************************************
-// split cmdline to tkn array and return nmb of token
-static int split(microrl_t* pThis, int limit, char** const tkn_arr) {
+/**
+ * \brief           split cmdline to tkn array and return nmb of token
+ * \param[in]       
+ *
+ * \return          
+ */
+static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
     int i = 0;
     int ind = 0;
 #ifdef _USE_QUOTING
@@ -287,24 +341,43 @@ static int split(microrl_t* pThis, int limit, char** const tkn_arr) {
 }
 
 
-//*****************************************************************************
+/**
+ * \brief           brief
+ * \param[in]       
+ *
+ * \return          
+ */
 inline static void print_prompt(microrl_t* pThis) {
     pThis->print(pThis, pThis->prompt_str);
 }
 
-//*****************************************************************************
+/**
+ * \brief           brief
+ * \param[in]       
+ *
+ * \return          
+ */
 inline static void terminal_backspace(microrl_t* pThis) {
     pThis->print(pThis, "\033[D \033[D");
 }
 
-//*****************************************************************************
+/**
+ * \brief           brief
+ * \param[in]       
+ *
+ * \return          
+ */
 inline static void terminal_newline(microrl_t* pThis) {
     pThis->print(pThis, ENDL);
 }
 
-//*****************************************************************************
-// set cursor at current position + offset (positive or negative).
-// the provided buffer must be at least 7 bytes long.
+/**
+ * \brief           set cursor at current position + offset (positive or negative).
+ *                  the provided buffer must be at least 7 bytes long.
+ * \param[in]       
+ *
+ * \return          
+ */
 static char * generate_move_cursor(char* str, int offset) {
     char c = 'C';
     if (offset > 999) {
@@ -341,8 +414,12 @@ static char * generate_move_cursor(char* str, int offset) {
     return str;
 }
 
-//*****************************************************************************
-// set cursor at current position + offset (positive or negative)
+/**
+ * \brief           set cursor at current position + offset (positive or negative)
+ * \param[in]       
+ *
+ * \return          
+ */
 static void terminal_move_cursor(microrl_t* pThis, int offset) {
     char str[16] = {0,};
     if (offset != 0) {
@@ -351,8 +428,12 @@ static void terminal_move_cursor(microrl_t* pThis, int offset) {
     }
 }
 
-//*****************************************************************************
-// print cmdline to screen, replace '\0' to wihitespace
+/**
+ * \brief           print cmdline to screen, replace '\0' to wihitespace
+ * \param[in]       
+ *
+ * \return          
+ */
 static void terminal_print_line(microrl_t* pThis, int pos, int reset) {
     if (!ECHO_IS_OFF()) {
         char str[_PRINT_BUFFER_LEN];
@@ -391,7 +472,12 @@ static void terminal_print_line(microrl_t* pThis, int pos, int reset) {
     }
 }
 
-//*****************************************************************************
+/**
+ * \brief           init internal data, calls once at start up
+ * \param[in]       
+ *
+ * \return          
+ */
 void microrl_init(microrl_t* pThis, void (*print)(microrl_t* , const char*)) {
     memset(pThis, 0, sizeof(microrl_t));
     pThis->prompt_str = prompt_default;
@@ -403,25 +489,49 @@ void microrl_init(microrl_t* pThis, void (*print)(microrl_t* , const char*)) {
     pThis->start_password = -1;
 }
 
-//*****************************************************************************
-void microrl_set_complete_callback(microrl_t* pThis, char ** (*get_completion)(microrl_t*, int, const char** const)) {
+/**
+ * \brief           set pointer to callback complition func, that called when user press 'Tab'
+ * \param[in]       argc: argument count
+ * \param[in]       argv: pointer array to token string
+ *
+ * \return          NULL-terminated string, contain complite variant splitted by 'Whitespace'
+ *                  If complite token found, it's must contain only one token to be complitted
+ *                  Empty string if complite not found, and multiple string if there are some token
+ */
+void microrl_set_complete_callback(microrl_t* pThis, char ** (*get_completion)(microrl_t*, int, const char* const *)) {
     pThis->get_completion = get_completion;
 }
 
-//*****************************************************************************
-void microrl_set_execute_callback(microrl_t* pThis, int (*execute)(microrl_t*, int, const char** const)) {
+/**
+ * \brief           pointer to callback func, that called when user press 'Enter'
+ * \param[in]       argc: argument count
+ * \param[in]       argv: pointer array to token string
+ *
+ * \return          
+ */
+void microrl_set_execute_callback(microrl_t* pThis, int (*execute)(microrl_t*, int, const char* const *)) {
     pThis->execute = execute;
 }
 
 #ifdef _USE_CTRL_C
-//*****************************************************************************
+/**
+ * \brief           set callback for Ctrl+C terminal signal
+ * \param[in]       
+ *
+ * \return          
+ */
 void microrl_set_sigint_callback(microrl_t* pThis, void (*sigintf)(microrl_t*)) {
     pThis->sigint = sigintf;
 }
 #endif
 
 #ifdef _USE_HISTORY
-//*****************************************************************************
+/**
+ * \brief           brief
+ * \param[in]       
+ *
+ * \return          
+ */
 static void hist_search(microrl_t* pThis, int dir) {
     int len = hist_restore_line(&pThis->ring_hist, pThis->cmdline, dir);
     if (len >= 0) {
@@ -433,8 +543,12 @@ static void hist_search(microrl_t* pThis, int dir) {
 #endif /* _USE_HISTORY */
 
 #ifdef _USE_ESC_SEQ
-//*****************************************************************************
-// handling escape sequences
+/**
+ * \brief           handling escape sequences
+ * \param[in]       
+ *
+ * \return          
+ */
 static int escape_process(microrl_t* pThis, char ch) {
     if (ch == '[') {
         pThis->escape_seq = _ESC_BRACKET;
@@ -486,8 +600,12 @@ static int escape_process(microrl_t* pThis, char ch) {
 }
 #endif /* _USE_ESC_SEQ */
 
-//*****************************************************************************
-// insert len char of text at cursor position
+/**
+ * \brief           insert len char of text at cursor position
+ * \param[in]       
+ *
+ * \return          
+ */
 int microrl_insert_text(microrl_t* pThis, char* text, int len) {
     int i;
     if (pThis->cmdlen + len < _COMMAND_LINE_LEN) {
@@ -511,8 +629,12 @@ int microrl_insert_text(microrl_t* pThis, char* text, int len) {
     return false;
 }
 
-//*****************************************************************************
-// remove len chars backwards at cursor
+/**
+ * \brief           remove len chars backwards at cursor
+ * \param[in]       
+ *
+ * \return          
+ */
 static void microrl_backspace(microrl_t* pThis, int len) {
     if (pThis->cursor >= len) {
         memmove(pThis->cmdline + pThis->cursor - len,
@@ -524,8 +646,12 @@ static void microrl_backspace(microrl_t* pThis, int len) {
     }
 }
 
-//*****************************************************************************
-// remove one char forward at cursor
+/**
+ * \brief           remove one char forward at cursor
+ * \param[in]       
+ *
+ * \return          
+ */
 static void microrl_delete(microrl_t* pThis) {
     if (pThis->cmdlen > 0) {
       memmove(pThis->cmdline + pThis->cursor,
@@ -538,7 +664,12 @@ static void microrl_delete(microrl_t* pThis) {
 
 #ifdef _USE_COMPLETE
 
-//*****************************************************************************
+/**
+ * \brief           brief
+ * \param[in]       
+ *
+ * \return          
+ */
 static int common_len(char** arr) {
     size_t i;
     size_t j;
@@ -563,9 +694,13 @@ static int common_len(char** arr) {
     return i;
 }
 
-//*****************************************************************************
+/**
+ * \brief           brief
+ * \param[in]       
+ * \return          
+ */
 static void microrl_get_complite(microrl_t* pThis) {
-    char* const tkn_arr[_COMMAND_TOKEN_NMB];
+    const char* tkn_arr[_COMMAND_TOKEN_NMB];
     char** compl_token;
 
     if (pThis->get_completion == NULL) { // callback was not set
@@ -616,9 +751,14 @@ static void microrl_get_complite(microrl_t* pThis) {
 }
 #endif /* _USE_COMPLETE */
 
-//*****************************************************************************
+/**
+ * \brief           brief
+ * \param[in]       
+ *
+ * \return          
+ */
 static void new_line_handler(microrl_t* pThis) {
-    char* const tkn_arr[_COMMAND_TOKEN_NMB];
+    const char* tkn_arr[_COMMAND_TOKEN_NMB];
     int status;
 
     terminal_newline(pThis);
@@ -653,8 +793,12 @@ static void new_line_handler(microrl_t* pThis) {
 #endif /* _USE_HISTORY */
 }
 
-//*****************************************************************************
-
+/**
+ * \brief           insert char to cmdline (for example call in usart RX interrupt)
+ * \param[in]       
+ *
+ * \return          
+ */
 void microrl_insert_char(microrl_t* pThis, int ch) {
 #ifdef _USE_ESC_SEQ
     if (pThis->escape) {
@@ -792,7 +936,15 @@ void microrl_insert_char(microrl_t* pThis, int ch) {
 #endif /* _USE_ESC_SEQ */
 }
 
-//*****************************************************************************
+/**
+ * \brief           set echo mode (ON/OFF/ONCE), using for disabling echo for password input
+ *                  using ONCE for disabling echo for password input,
+ *                  echo mode will enabled after user press Enter.
+ *                  use ON and OFF for turning echo off and on manualy.
+ * \param[in]       
+ *
+ * \return          
+ */
 void microrl_set_echo(microrl_t* pThis, echo_t echo) {
     pThis->echo = echo;
 }

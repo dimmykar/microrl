@@ -4,7 +4,7 @@ extern "C" {
 }
 #include "esp8266_misc.h"
 
-extern void microrl_init(microrl_t* pThis, void (*print) (microrl_t*, const char*));
+extern void microrl_init(microrl_t* pThis, void (*print)(microrl_t*, const char*));
 
 // create microrl object and pointer on it
 microrl_t rl;

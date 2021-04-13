@@ -1,9 +1,32 @@
-/*
- * Author: Samoylov Eugene aka Helius (ghelius@gmail.com)
+/**
+ * \file            microrl.h
+ * \brief           MicroRL library
  */
 
-#ifndef _MICRORL_H_
-#define _MICRORL_H_
+/*
+ * Copyright (c) 2011 Eugene SAMOYLOV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * This file is part of MicroRL - Micro Read Line library for small and embedded devices.
+ *
+ * Author:          Eugene SAMOYLOV aka Helius <ghelius@gmail.com>
+ * Author:          Dmitry KARASEV <karasevsdmitry@yandex.ru>
+ * Version:         1.6.1
+ */
+
+#ifndef MICRORL_HDR_H
+#define MICRORL_HDR_H
 
 #include "microrl_config.h"
 
@@ -11,6 +34,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
+/**
+ * \brief           brief
+ */
 #ifndef false
 #define false           0
 #endif /* false */
@@ -18,7 +45,10 @@ extern "C" {
 #define true            (!false)
 #endif /* true */
 
-/* define the Key codes */
+
+/**
+ * \brief           Define the Key codes
+ */
 #define KEY_NUL         0      /**< ^@ Null character */
 #define KEY_SOH         1      /**< ^A Start of heading, = console interrupt */
 #define KEY_STX         2      /**< ^B Start of text, maintenance mode on HP console */
@@ -54,107 +84,114 @@ extern "C" {
 
 #define KEY_DEL         127    /**< Delete (not a real control character...) */
 
+
+/**
+ * \brief           brief
+ */
 #define IS_CONTROL_CHAR(x)    ((x) <= 31)
 
-// direction of history navigation
+
+/**
+ * \brief           Direction of history navigation
+ */
 #define _HIST_UP        0
 #define _HIST_DOWN      1
-// esc seq internal codes
+
+
+/**
+ * \brief           ESC seq internal codes
+ */
 #define _ESC_BRACKET    1
 #define _ESC_HOME       2
 #define _ESC_END        3
 
-#ifdef _USE_HISTORY
-// history struct, contain internal variable
-// history store in static ring buffer for memory saving
-typedef struct {
-    char ring_buf[_RING_HISTORY_LEN];
-    int begin;
-    int end;
-    int cur;
-} ring_history_t;
-#endif /* _USE_HISTORY */
 
-#ifdef _USE_QUOTING
-// quoted token struct, point to begin and end marks
-typedef struct {
-    char* begin;
-    char* end;
-} quoted_token_t;
-#endif /* _USE_QUOTING */
+/**
+ * \brief           brief
+ */
+#define ECHO_IS_ON()         ((pThis->echo) == (ON))
+#define ECHO_IS_OFF()        ((pThis->echo) == (OFF))
+#define ECHO_IS_ONCE()       ((pThis->echo) == (ONCE))
 
+/**
+ * \brief           brief
+ */
 typedef enum echo_ {
     ONCE,
     ON,
     OFF
 } echo_t;
 
-#define ECHO_IS_ON()         ((pThis->echo) == (ON))
-#define ECHO_IS_OFF()        ((pThis->echo) == (OFF))
-#define ECHO_IS_ONCE()       ((pThis->echo) == (ONCE))
+#ifdef _USE_HISTORY
+/**
+ * \brief           history struct, contain internal variable
+ *                  history store in static ring buffer for memory saving
+ */
+typedef struct {
+    char ring_buf [_RING_HISTORY_LEN];
+    int begin;
+    int end;
+    int cur;
+} ring_history_t;
+#endif /* _USE_HISTORY */
 
-// microrl struct, contain internal library data
+
+#ifdef _USE_QUOTING
+/**
+ * \brief           quoted token struct, point to begin and end marks
+ */
+typedef struct {
+    char* begin;
+    char* end;
+} quoted_token_t;
+#endif /* _USE_QUOTING */
+
+/**
+ * \brief           microrl struct, contain internal library data
+ */
 typedef struct microrl microrl_t;
 struct microrl {
 #ifdef _USE_ESC_SEQ
     char escape_seq;
     char escape;
-#endif /* _USE_ESC_SEQ */
+#endif
     char last_endl;                    // either 0 or the CR or LF that just triggered a newline
 #ifdef _USE_HISTORY
     ring_history_t ring_hist;          // history object
-#endif /* _USE_HISTORY */
-    char* prompt_str;                 // pointer to prompt string
-    char cmdline[_COMMAND_LINE_LEN];  // cmdline buffer
+#endif
+    char* prompt_str;                  // pointer to prompt string
+    char cmdline[_COMMAND_LINE_LEN];   // cmdline buffer
     int cmdlen;                        // last position in command line
     int cursor;                        // input cursor
 #ifdef _USE_QUOTING
     quoted_token_t quotes[_QUOTED_TOKEN_NMB]; // pointers to quoted tokens
-#endif /* _USE_QUOTING */
-    int (*execute) (microrl_t* pThis, int argc, const char** const argv );            // ptr to 'execute' callback
-    char ** (*get_completion) (microrl_t* pThis, int argc, const char** const argv ); // ptr to 'completion' callback
-    void (*print) (microrl_t* pThis, const char*);                                     // ptr to 'print' callback
+#endif
+    int (*execute)(microrl_t* pThis, int argc, const char* const *argv);             // ptr to 'execute' callback
+    char ** (*get_completion)(microrl_t* pThis, int argc, const char* const *argv);  // ptr to 'completion' callback
+    void (*print)(microrl_t* pThis, const char*);                                    // ptr to 'print' callback
 #ifdef _USE_CTRL_C
-    void (*sigint) (microrl_t* pThis);
-#endif /* _USE_CTRL_C*/
+    void (*sigint)(microrl_t* pThis);
+#endif
     echo_t echo;
     int start_password;                // position when start printing '*' chars
-    void* userdata;                   // generic user data storage
+    void* userdata;                    // generic user data storage
 };
 
-// init internal data, calls once at start up
 void microrl_init(microrl_t* pThis, void (*print)(microrl_t* pThis, const char*));
-
-// set echo mode (ON/OFF/ONCE), using for disabling echo for password input
-// using ONCE for disabling echo for password input,
-// echo mode will enabled after user press Enter.
-// use ON and OFF for turning echo off and on manualy.
-void microrl_set_echo(microrl_t* pThis, echo_t echo);
-
-// set pointer to callback complition func, that called when user press 'Tab'
-// callback func description:
-//   param: argc - argument count, argv - pointer array to token string
-//   must return NULL-terminated string, contain complite variant splitted by 'Whitespace'
-//   If complite token found, it's must contain only one token to be complitted
-//   Empty string if complite not found, and multiple string if there are some token
-void microrl_set_complete_callback(microrl_t* pThis, char ** (*get_completion)(microrl_t*, int, const char** const));
-
-// pointer to callback func, that called when user press 'Enter'
-// execute func param: argc - argument count, argv - pointer array to token string
-void microrl_set_execute_callback(microrl_t* pThis, int (*execute)(microrl_t*, int, const char** const));
-
-// set callback for Ctrl+C terminal signal
+void microrl_set_complete_callback(microrl_t* pThis, char ** (*get_completion)(microrl_t*, int, const char* const *));
+void microrl_set_execute_callback(microrl_t* pThis, int (*execute)(microrl_t*, int, const char* const *));
 #ifdef _USE_CTRL_C
 void microrl_set_sigint_callback(microrl_t* pThis, void (*sigintf)(microrl_t*));
 #endif /* _USE_CTRL_C */
 
-// insert char to cmdline (for example call in usart RX interrupt)
+void microrl_set_echo(microrl_t* pThis, echo_t echo);
+
 void microrl_insert_char(microrl_t* pThis, int ch);
+int microrl_insert_text(microrl_t* pThis, char* text, int len);
 
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-
-#endif  /* _MICRORL_H_ */
+#endif  /* MICRORL_HDR_H */

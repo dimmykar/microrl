@@ -48,12 +48,12 @@ char get_char(void) {
 #define _NUM_OF_VER_SCMD    2
 
 //available  commands
-char* keyworld[] = {_CMD_HELP, _CMD_CLEAR, _CMD_LIST, _CMD_NAME, _CMD_VER, _CMD_LISP};
+char* keyword[] = {_CMD_HELP, _CMD_CLEAR, _CMD_LIST, _CMD_NAME, _CMD_VER, _CMD_LISP};
 // version subcommands
-char* ver_keyworld[] = {_SCMD_MRL, _SCMD_DEMO};
+char* ver_keyword[] = {_SCMD_MRL, _SCMD_DEMO};
 
 // array for comletion
-char* compl_world[_NUM_OF_CMD + 1];
+char* compl_word[_NUM_OF_CMD + 1];
 
 // 'name' var for store some string
 #define _NAME_LEN    8
@@ -75,7 +75,7 @@ void print_help(microrl_t* pThis) {
 //*****************************************************************************
 // execute callback for microrl library
 // do what you want here, but don't write to argv!!! read only!!
-int execute(microrl_t* pThis, int argc, const char** const argv) {
+int execute(microrl_t* pThis, int argc, const char* const *argv) {
     int i = 0;
     // just iterate through argv word and compare it with your commands
     while (i < argc) {
@@ -113,7 +113,7 @@ int execute(microrl_t* pThis, int argc, const char** const argv) {
             print(pThis, "available command:\n");// print all command per line
             for (int i = 0; i < _NUM_OF_CMD; i++) {
                 print(pThis, "\t");
-                print(pThis, keyworld[i]);
+                print(pThis, keyword[i]);
                 print(pThis, "\n\r");
             }
         } else {
@@ -129,10 +129,10 @@ int execute(microrl_t* pThis, int argc, const char** const argv) {
 #ifdef _USE_COMPLETE
 //*****************************************************************************
 // completion callback for microrl library
-char ** complet(microrl_t* pThis, int argc, const char** const argv) {
+char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
     int j = 0;
 
-    compl_world[0] = NULL;
+    compl_word[0] = NULL;
 
     // if there is token in cmdline
     if (argc == 1) {
@@ -141,28 +141,28 @@ char ** complet(microrl_t* pThis, int argc, const char** const argv) {
         // iterate through our available token and match it
         for (int i = 0; i < _NUM_OF_CMD; i++) {
             // if token is matched (text is part of our token starting from 0 char)
-            if (strstr(keyworld[i], bit) == keyworld[i]) {
+            if (strstr(keyword[i], bit) == keyword[i]) {
                 // add it to completion set
-                compl_world[j++] = keyworld[i];
+                compl_word[j++] = keyword[i];
             }
         }
     }  else if ((argc > 1) && (strcmp (argv[0], _CMD_VER)==0)) { // if command needs subcommands
         // iterate through subcommand for command _CMD_VER array
         for (int i = 0; i < _NUM_OF_VER_SCMD; i++) {
-            if (strstr(ver_keyworld[i], argv[argc - 1]) == ver_keyworld[i]) {
-                compl_world[j++] = ver_keyworld[i];
+            if (strstr(ver_keyword[i], argv[argc - 1]) == ver_keyword[i]) {
+                compl_word[j++] = ver_keyword[i];
             }
         }
     } else { // if there is no token in cmdline, just print all available token
         for (; j < _NUM_OF_CMD; j++) {
-            compl_world[j] = keyworld[j];
+            compl_word[j] = keyword[j];
         }
     }
 
     // note! last ptr in array always must be NULL!!!
-    compl_world[j] = NULL;
+    compl_word[j] = NULL;
     // return set of variants
-    return compl_world;
+    return compl_word;
 }
 #endif
 

@@ -16,10 +16,10 @@ void print(microrl_t* pThis, const char* str);
 char get_char(void);
 
 // execute callback
-int execute(microrl_t* pThis, int argc, const char** const argv);
+int execute(microrl_t* pThis, int argc, const char* const *argv);
 
 // completion callback
-char ** complet(microrl_t* pThis, int argc, const char** const argv);
+char ** complet(microrl_t* pThis, int argc, const char* const *argv);
 
 // ctrl+c callback
 void sigint(microrl_t* pThis);

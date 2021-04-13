@@ -21,12 +21,12 @@ AVR platform specific implementation routines (for Atmega8, rewrite for your MC)
 #define _NUM_OF_SETCLEAR_SCMD    2
 
 //available  commands
-char* keyworld[] = {_CMD_HELP, _CMD_CLEAR, _CMD_SET, _CMD_CLR};
+char* keyword[] = {_CMD_HELP, _CMD_CLEAR, _CMD_SET, _CMD_CLR};
 // 'set/clear' command argements
 char* set_clear_key[] = {_SCMD_PB, _SCMD_PD};
 
 // array for comletion
-char* compl_world[_NUM_OF_CMD + 1];
+char* compl_word[_NUM_OF_CMD + 1];
 
 
 void put_char(unsigned char ch);
@@ -92,7 +92,7 @@ void set_port_val(microrl_t* pThis, unsigned char* port, int pin, int val) {
 //*****************************************************************************
 // execute callback for microrl library
 // do what you want here, but don't write to argv!!! read only!!
-int execute(microrl_t* pThis, int argc, const char** const argv) {
+int execute(microrl_t* pThis, int argc, const char* const *argv) {
     int i = 0;
     // just iterate through argv word and compare it with your commands
     while (i < argc) {
@@ -145,10 +145,10 @@ int execute(microrl_t* pThis, int argc, const char** const argv) {
 #ifdef _USE_COMPLETE
 //*****************************************************************************
 // completion callback for microrl library
-char ** complet(microrl_t* pThis, int argc, const char** const argv) {
+char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
     int j = 0;
 
-    compl_world[0] = NULL;
+    compl_word[0] = NULL;
 
     // if there is token in cmdline
     if (argc == 1) {
@@ -157,9 +157,9 @@ char ** complet(microrl_t* pThis, int argc, const char** const argv) {
         // iterate through our available token and match it
         for (int i = 0; i < _NUM_OF_CMD; i++) {
             // if token is matched (text is part of our token starting from 0 char)
-            if (strstr(keyworld[i], bit) == keyworld[i]) {
+            if (strstr(keyword[i], bit) == keyword[i]) {
                 // add it to completion set
-                compl_world[j++] = keyworld[i];
+                compl_word[j++] = keyword[i];
             }
         }
     }  else if ((argc > 1) && ((strcmp(argv[0], _CMD_SET)==0) || 
@@ -167,19 +167,19 @@ char ** complet(microrl_t* pThis, int argc, const char** const argv) {
         // iterate through subcommand
         for (int i = 0; i < _NUM_OF_SETCLEAR_SCMD; i++) {
             if (strstr(set_clear_key[i], argv[argc - 1]) == set_clear_key[i]) {
-                compl_world[j++] = set_clear_key[i];
+                compl_word[j++] = set_clear_key[i];
             }
         }
     } else { // if there is no token in cmdline, just print all available token
         for (; j < _NUM_OF_CMD; j++) {
-            compl_world[j] = keyworld[j];
+            compl_word[j] = keyword[j];
         }
     }
 
     // note! last ptr in array always must be NULL!!!
-    compl_world[j] = NULL;
+    compl_word[j] = NULL;
     // return set of variants
-    return compl_world;
+    return compl_word;
 }
 #endif
 
