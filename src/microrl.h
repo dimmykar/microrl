@@ -20,8 +20,8 @@
  *
  * This file is part of MicroRL - Micro Read Line library for small and embedded devices.
  *
- * Author:          Eugene SAMOYLOV aka Helius <ghelius@gmail.com>
- * Author:          Dmitry KARASEV <karasevsdmitry@yandex.ru>
+ * Authors:         Eugene SAMOYLOV aka Helius <ghelius@gmail.com>,
+ *                  Dmitry KARASEV <karasevsdmitry@yandex.ru>
  * Version:         1.6.1
  */
 
@@ -36,7 +36,7 @@ extern "C" {
 
 
 /**
- * \brief           brief
+ * \brief           Boolean values that not implemented in C
  */
 #ifndef false
 #define false           0
@@ -47,7 +47,7 @@ extern "C" {
 
 
 /**
- * \brief           Define the Key codes
+ * \brief           List of key codes
  */
 #define KEY_NUL         0      /**< ^@ Null character */
 #define KEY_SOH         1      /**< ^A Start of heading, = console interrupt */
@@ -124,8 +124,10 @@ typedef enum echo_ {
 
 #ifdef _USE_HISTORY
 /**
- * \brief           history struct, contain internal variable
- *                  history store in static ring buffer for memory saving
+ * \brief           History struct, contains internal variable
+ *
+ * History stores in static ring buffer for memory saving
+ *
  */
 typedef struct {
     char ring_buf [_RING_HISTORY_LEN];
@@ -138,7 +140,7 @@ typedef struct {
 
 #ifdef _USE_QUOTING
 /**
- * \brief           quoted token struct, point to begin and end marks
+ * \brief           Quoted token struct, points to begin and end marks
  */
 typedef struct {
     char* begin;
@@ -147,7 +149,7 @@ typedef struct {
 #endif /* _USE_QUOTING */
 
 /**
- * \brief           microrl struct, contain internal library data
+ * \brief           MicroRL struct, contains internal library data
  */
 typedef struct microrl microrl_t;
 struct microrl {

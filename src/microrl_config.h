@@ -20,8 +20,8 @@
  *
  * This file is part of MicroRL - Micro Read Line library for small and embedded devices.
  *
- * Author:          Eugene SAMOYLOV aka Helius <ghelius@gmail.com>
- * Author:          Dmitry KARASEV <karasevsdmitry@yandex.ru>
+ * Authors:         Eugene SAMOYLOV aka Helius <ghelius@gmail.com>,
+ *                  Dmitry KARASEV <karasevsdmitry@yandex.ru>
  * Version:         1.6.1
  */
 

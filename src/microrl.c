@@ -20,8 +20,8 @@
  *
  * This file is part of MicroRL - Micro Read Line library for small and embedded devices.
  *
- * Author:          Eugene SAMOYLOV aka Helius <ghelius@gmail.com>
- * Author:          Dmitry KARASEV <karasevsdmitry@yandex.ru>
+ * Authors:         Eugene SAMOYLOV aka Helius <ghelius@gmail.com>,
+ *                  Dmitry KARASEV <karasevsdmitry@yandex.ru>
  * Version:         1.6.1
  */
 
@@ -38,16 +38,14 @@
 #endif /* _USE_LIBC_STDIO */
 #include "microrl.h"
 
-char* prompt_default = _PROMPT_DEFAULT;
+static char* prompt_default = _PROMPT_DEFAULT;
 
 #ifdef _USE_HISTORY
 
 #ifdef _HISTORY_DEBUG
 /**
- * \brief           print buffer content on screen
- * \param[in]       
- *
- * \return          
+ * \brief           Print history buffer content on screen
+ * \param[in]       pThis: Pointer to \ref ring_history_t structure
  */
 static void print_hist(ring_history_t* pThis) {
     printf("\n");
@@ -78,10 +76,8 @@ static void print_hist(ring_history_t* pThis) {
 #endif /* _HISTORY_DEBUG */
 
 /**
- * \brief           remove older message from ring buffer
- * \param[in]       
- *
- * \return          
+ * \brief           Remove older record from ring buffer
+ * \param[in,out]   pThis: Pointer to \ref ring_history_t structure
  */
 static void hist_erase_older(ring_history_t* pThis) {
     int new_pos = pThis->begin + pThis->ring_buf[pThis->begin] + 1;
@@ -93,9 +89,9 @@ static void hist_erase_older(ring_history_t* pThis) {
 }
 
 /**
- * \brief           check space for new line, remove older while not space
- * \param[in]       
- *
+ * \brief           Check space for new line, remove older while not space
+ * \param[in]       pThis: Pointer to \ref ring_history_t structure
+ * \param[in]       len: 
  * \return          
  */
 static int hist_is_space_for_new(ring_history_t* pThis, int len) {
@@ -115,10 +111,10 @@ static int hist_is_space_for_new(ring_history_t* pThis, int len) {
 }
 
 /**
- * \brief           put line to ring buffer
- * \param[in]       
- *
- * \return          
+ * \brief           Put line to ring buffer
+ * \param[in,out]   pThis: Pointer to \ref ring_history_t structure
+ * \param[in]       line: Record to save in history
+ * \param[in]       len: Record length
  */
 static void hist_save_line(ring_history_t* pThis, char* line, int len) {
     if (len > (_RING_HISTORY_LEN - 2)) {
@@ -156,10 +152,11 @@ static void hist_save_line(ring_history_t* pThis, char* line, int len) {
 }
 
 /**
- * \brief           copy saved line to 'line' and return size of line
- * \param[in]       
- *
- * \return          
+ * \brief           Copy saved line to 'line' and return size of line
+ * \param[in]       pThis: Pointer to \ref ring_history_t structure
+ * \param[out]      line: Restored line from history
+ * \param[in]       dir: Record search direction
+ * \return          Size of restored line. 0 is returned, if history is empty
  */
 static int hist_restore_line(ring_history_t* pThis, char* line, int dir) {
     int cnt = 0;
@@ -239,10 +236,8 @@ static int hist_restore_line(ring_history_t* pThis, char* line, int dir) {
 
 #ifdef _USE_QUOTING
 /**
- * \brief           restore end quote marks in cmdline
- * \param[in]       
- *
- * \return          
+ * \brief           Restore end quote marks in command line
+ * \param[in,out]   pThis: \ref microrl_t working instance
  */
 static void restore(microrl_t* pThis) {
     int iq;
@@ -259,10 +254,11 @@ static void restore(microrl_t* pThis) {
 #endif /* _USE_QUOTING */
 
 /**
- * \brief           split cmdline to tkn array and return nmb of token
- * \param[in]       
- *
- * \return          
+ * \brief           Split command line to tokens array
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       limit: 
+ * \param[in]       tkn_arr: 
+ * \return          Number of split tokens
  */
 static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
     int i = 0;
@@ -342,41 +338,36 @@ static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
 
 
 /**
- * \brief           brief
- * \param[in]       
- *
- * \return          
+ * \brief           Print default prompt defined in \ref _PROMPT_DEFAULT config
+ * \param[in,out]   pThis: \ref microrl_t working instance
  */
 inline static void print_prompt(microrl_t* pThis) {
     pThis->print(pThis, pThis->prompt_str);
 }
 
 /**
- * \brief           brief
- * \param[in]       
- *
- * \return          
+ * \brief           Clear last symbol in command line and move cursor
+ *                  to its position
+ * \param[in,out]   pThis: \ref microrl_t working instance
  */
 inline static void terminal_backspace(microrl_t* pThis) {
     pThis->print(pThis, "\033[D \033[D");
 }
 
 /**
- * \brief           brief
- * \param[in]       
- *
- * \return          
+ * \brief           Print end line symbol defined in \ref ENDL config
+ * \param[in,out]   pThis: \ref microrl_t working instance
  */
 inline static void terminal_newline(microrl_t* pThis) {
     pThis->print(pThis, ENDL);
 }
 
 /**
- * \brief           set cursor at current position + offset (positive or negative).
- *                  the provided buffer must be at least 7 bytes long.
- * \param[in]       
- *
- * \return          
+ * \brief           Set cursor at current position + offset (positive or negative)
+ *                  in string. The provided string must be at least 7 bytes long
+ * \param[in]       str: The original string before moving the cursor
+ * \param[in]       offset: Positive or negative interval to move cursor
+ * \return          The original string after moving the cursor
  */
 static char * generate_move_cursor(char* str, int offset) {
     char c = 'C';
@@ -415,10 +406,10 @@ static char * generate_move_cursor(char* str, int offset) {
 }
 
 /**
- * \brief           set cursor at current position + offset (positive or negative)
- * \param[in]       
- *
- * \return          
+ * \brief           Set cursor at current position + offset (positive or negative)
+ *                  in terminal's command line
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       offset: Positive or negative interval to move cursor
  */
 static void terminal_move_cursor(microrl_t* pThis, int offset) {
     char str[16] = {0,};
@@ -429,10 +420,10 @@ static void terminal_move_cursor(microrl_t* pThis, int offset) {
 }
 
 /**
- * \brief           print cmdline to screen, replace '\0' to wihitespace
- * \param[in]       
- *
- * \return          
+ * \brief           Print command line to screen, replace '\0' to wihitespace
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       pos: 
+ * \param[in]       reset: 
  */
 static void terminal_print_line(microrl_t* pThis, int pos, int reset) {
     if (!ECHO_IS_OFF()) {
@@ -473,12 +464,11 @@ static void terminal_print_line(microrl_t* pThis, int pos, int reset) {
 }
 
 /**
- * \brief           init internal data, calls once at start up
- * \param[in]       
- *
- * \return          
+ * \brief           Init internal data, calls once at start up
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       print: 
  */
-void microrl_init(microrl_t* pThis, void (*print)(microrl_t* , const char*)) {
+void microrl_init(microrl_t* pThis, void (*print)(microrl_t*, const char*)) {
     memset(pThis, 0, sizeof(microrl_t));
     pThis->prompt_str = prompt_default;
     pThis->print = print;
@@ -490,24 +480,25 @@ void microrl_init(microrl_t* pThis, void (*print)(microrl_t* , const char*)) {
 }
 
 /**
- * \brief           set pointer to callback complition func, that called when user press 'Tab'
- * \param[in]       argc: argument count
- * \param[in]       argv: pointer array to token string
- *
- * \return          NULL-terminated string, contain complite variant splitted by 'Whitespace'
- *                  If complite token found, it's must contain only one token to be complitted
- *                  Empty string if complite not found, and multiple string if there are some token
+ * \brief           Set pointer to callback complition func, that called when user press 'Tab'
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       get_completion: 
+// * \param[in]       argc: argument count
+// * \param[in]       argv: pointer array to token string
+// * \return          NULL-terminated string, contain complite variant split by 'Whitespace'
+// *                  If complite token found, it's must contain only one token to be complitted
+// *                  Empty string if complite not found, and multiple string if there are some token
  */
 void microrl_set_complete_callback(microrl_t* pThis, char ** (*get_completion)(microrl_t*, int, const char* const *)) {
     pThis->get_completion = get_completion;
 }
 
 /**
- * \brief           pointer to callback func, that called when user press 'Enter'
- * \param[in]       argc: argument count
- * \param[in]       argv: pointer array to token string
- *
- * \return          
+ * \brief           Pointer to callback func, that called when user press 'Enter'
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       execute: 
+// * \param[in]       argc: argument count
+// * \param[in]       argv: pointer array to token string
  */
 void microrl_set_execute_callback(microrl_t* pThis, int (*execute)(microrl_t*, int, const char* const *)) {
     pThis->execute = execute;
@@ -515,22 +506,33 @@ void microrl_set_execute_callback(microrl_t* pThis, int (*execute)(microrl_t*, i
 
 #ifdef _USE_CTRL_C
 /**
- * \brief           set callback for Ctrl+C terminal signal
- * \param[in]       
- *
- * \return          
+ * \brief           Set callback for Ctrl+C terminal signal
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       sigintf: 
  */
 void microrl_set_sigint_callback(microrl_t* pThis, void (*sigintf)(microrl_t*)) {
     pThis->sigint = sigintf;
 }
 #endif
 
+/**
+ * \brief           Set echo mode (ON/OFF/ONCE), using to disabe echo for password input
+ *
+ * Use ONCE to disable echo for password input, echo mode will enabled after user press Enter.
+ * Use ON or OFF to turn on or off the echo manualy.
+ *
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       echo: Member of \ref echo_t enumeration
+ */
+void microrl_set_echo(microrl_t* pThis, echo_t echo) {
+    pThis->echo = echo;
+}
+
 #ifdef _USE_HISTORY
 /**
- * \brief           brief
- * \param[in]       
- *
- * \return          
+ * \brief           
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       dir: 
  */
 static void hist_search(microrl_t* pThis, int dir) {
     int len = hist_restore_line(&pThis->ring_hist, pThis->cmdline, dir);
@@ -544,9 +546,9 @@ static void hist_search(microrl_t* pThis, int dir) {
 
 #ifdef _USE_ESC_SEQ
 /**
- * \brief           handling escape sequences
- * \param[in]       
- *
+ * \brief           Handle escape sequences
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       ch:
  * \return          
  */
 static int escape_process(microrl_t* pThis, char ch) {
@@ -601,9 +603,10 @@ static int escape_process(microrl_t* pThis, char ch) {
 #endif /* _USE_ESC_SEQ */
 
 /**
- * \brief           insert len char of text at cursor position
- * \param[in]       
- *
+ * \brief           Insert len char of text at cursor position
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       text: 
+ * \param[in]       len: 
  * \return          
  */
 int microrl_insert_text(microrl_t* pThis, char* text, int len) {
@@ -630,10 +633,9 @@ int microrl_insert_text(microrl_t* pThis, char* text, int len) {
 }
 
 /**
- * \brief           remove len chars backwards at cursor
- * \param[in]       
- *
- * \return          
+ * \brief           Remove len chars backwards at cursor
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       len: 
  */
 static void microrl_backspace(microrl_t* pThis, int len) {
     if (pThis->cursor >= len) {
@@ -647,10 +649,8 @@ static void microrl_backspace(microrl_t* pThis, int len) {
 }
 
 /**
- * \brief           remove one char forward at cursor
- * \param[in]       
- *
- * \return          
+ * \brief           Remove one char forward at cursor
+ * \param[in,out]   pThis: \ref microrl_t working instance
  */
 static void microrl_delete(microrl_t* pThis) {
     if (pThis->cmdlen > 0) {
@@ -665,9 +665,8 @@ static void microrl_delete(microrl_t* pThis) {
 #ifdef _USE_COMPLETE
 
 /**
- * \brief           brief
- * \param[in]       
- *
+ * \brief           
+ * \param[in]       arr: 
  * \return          
  */
 static int common_len(char** arr) {
@@ -695,9 +694,8 @@ static int common_len(char** arr) {
 }
 
 /**
- * \brief           brief
- * \param[in]       
- * \return          
+ * \brief           
+ * \param[in,out]   pThis: \ref microrl_t working instance
  */
 static void microrl_get_complite(microrl_t* pThis) {
     const char* tkn_arr[_COMMAND_TOKEN_NMB];
@@ -752,10 +750,8 @@ static void microrl_get_complite(microrl_t* pThis) {
 #endif /* _USE_COMPLETE */
 
 /**
- * \brief           brief
- * \param[in]       
- *
- * \return          
+ * \brief           
+ * \param[in,out]   pThis: \ref microrl_t working instance
  */
 static void new_line_handler(microrl_t* pThis) {
     const char* tkn_arr[_COMMAND_TOKEN_NMB];
@@ -794,10 +790,12 @@ static void new_line_handler(microrl_t* pThis) {
 }
 
 /**
- * \brief           insert char to cmdline (for example call in usart RX interrupt)
- * \param[in]       
+ * \brief           Insert char to command line
  *
- * \return          
+ * For example call in usart RX interrupt
+ *
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       ch: 
  */
 void microrl_insert_char(microrl_t* pThis, int ch) {
 #ifdef _USE_ESC_SEQ
@@ -934,17 +932,4 @@ void microrl_insert_char(microrl_t* pThis, int ch) {
 #ifdef _USE_ESC_SEQ
     }
 #endif /* _USE_ESC_SEQ */
-}
-
-/**
- * \brief           set echo mode (ON/OFF/ONCE), using for disabling echo for password input
- *                  using ONCE for disabling echo for password input,
- *                  echo mode will enabled after user press Enter.
- *                  use ON and OFF for turning echo off and on manualy.
- * \param[in]       
- *
- * \return          
- */
-void microrl_set_echo(microrl_t* pThis, echo_t echo) {
-    pThis->echo = echo;
 }
