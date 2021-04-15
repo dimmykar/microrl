@@ -35,7 +35,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-
 /**
  * \brief           Boolean values that not implemented in C
  */
@@ -224,6 +223,7 @@ typedef struct microrl {
 } microrl_t;
 
 void microrl_init(microrl_t* pThis, print_fn print);
+
 #if MICRORL_CFG_USE_COMPLETE
 void microrl_set_complete_callback(microrl_t* pThis, get_compl_fn get_completion);
 #endif /* MICRORL_CFG_USE_COMPLETE */
@@ -236,7 +236,6 @@ void microrl_set_echo(microrl_t* pThis, echo_t echo);
 
 void microrl_insert_char(microrl_t* pThis, int ch);
 int microrl_insert_text(microrl_t* pThis, char* text, int len);
-
 
 #ifdef __cplusplus
 }

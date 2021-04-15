@@ -1,25 +1,85 @@
+/**
+ * \file            unix_misc.c
+ * \brief           Linux PC platform specific implementation routines
+ */
+
+/*
+ * Copyright (c) 2011 Eugene SAMOYLOV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * This file is part of MicroRL - Micro Read Line library for small and embedded devices.
+ *
+ * Author:          Eugene SAMOYLOV aka Helius <ghelius@gmail.com>
+ * Version:         1.7.0-dev
+ */
+
 #include <termios.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <unistd.h> 
 #include <string.h>
-#include <microrl.h>
+#include "microrl.h"
 
-//*****************************************************************************
-//dummy function, no need on linux-PC
+// definition commands word
+#define _CMD_HELP           "help"
+#define _CMD_CLEAR          "clear"
+#define _CMD_LIST           "list"
+#define _CMD_LISP           "lisp"    // for demonstration completion on 'l + <TAB>'
+#define _CMD_NAME           "name"
+#define _CMD_VER            "version"
+// sub commands for version command
+#define _SCMD_MRL           "microrl"
+#define _SCMD_DEMO          "demo"
+
+#define _NUM_OF_CMD         6
+#define _NUM_OF_VER_SCMD    2
+
+#define _NAME_LEN           8
+
+//available  commands
+char* keyword[] = {_CMD_HELP, _CMD_CLEAR, _CMD_LIST, _CMD_NAME, _CMD_VER, _CMD_LISP};
+// version subcommands
+char* ver_keyword[] = {_SCMD_MRL, _SCMD_DEMO};
+
+// array for comletion
+char* compl_word[_NUM_OF_CMD + 1];
+
+// 'name' var for store some string
+char name[_NAME_LEN];
+int val;
+
+/**
+ * \brief           Init Linux PC platform
+ * \note            Dummy function, no need on Linux-PC
+ */
 void init(void) {
 };
 
-//*****************************************************************************
-// print callback for microrl library
+/**
+ * \brief           Print to IO stream callback for MicroRL library
+ * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       str: Output string
+ */
 void print(microrl_t* pThis, const char* str) {
     fprintf(stdout, "%s", str);
 }
 
-
-//*****************************************************************************
-// get char user pressed, no waiting Enter input
+/**
+ * \brief           Get char user pressed, no waiting Enter input
+ * \return          Input character
+ */
 char get_char(void) {
     struct termios oldt, newt;
     int ch;
@@ -32,55 +92,36 @@ char get_char(void) {
     return ch;
 }
 
-
-// definition commands word
-#define _CMD_HELP    "help"
-#define _CMD_CLEAR   "clear"
-#define _CMD_LIST    "list"
-#define _CMD_LISP    "lisp" // for demonstration completion on 'l + <TAB>'
-#define _CMD_NAME    "name"
-#define _CMD_VER     "version"
-// sub commands for version command
-#define _SCMD_MRL     "microrl"
-#define _SCMD_DEMO    "demo"
-
-#define _NUM_OF_CMD         6
-#define _NUM_OF_VER_SCMD    2
-
-//available  commands
-char* keyword[] = {_CMD_HELP, _CMD_CLEAR, _CMD_LIST, _CMD_NAME, _CMD_VER, _CMD_LISP};
-// version subcommands
-char* ver_keyword[] = {_SCMD_MRL, _SCMD_DEMO};
-
-// array for comletion
-char* compl_word[_NUM_OF_CMD + 1];
-
-// 'name' var for store some string
-#define _NAME_LEN    8
-char name[_NAME_LEN];
-int val;
-
-
-//*****************************************************************************
+/**
+ * \brief           HELP command callback
+ * \param[in]       pThis: \ref microrl_t working instance
+ */
 void print_help(microrl_t* pThis) {
-    print (pThis, "Use TAB key for completion\n\rCommand:\n\r");
-    print (pThis, "\tversion {microrl | demo} - print version of microrl lib or version of this demo src\n\r");
-    print (pThis, "\thelp  - this message\n\r");
-    print (pThis, "\tclear - clear screen\n\r");
-    print (pThis, "\tlist  - list all commands in tree\n\r");
-    print (pThis, "\tname[string] - print 'name' value if no 'string', set name value to 'string' if 'string' present\n\r");
-    print (pThis, "\tlisp - dummy command for demonstation auto-completion, while inputed 'l+<TAB>'\n\r");
+    print(pThis, "Use TAB key for completion\n\rCommand:\n\r");
+    print(pThis, "\tversion {microrl | demo} - print version of microrl lib or version of this demo src\n\r");
+    print(pThis, "\thelp  - this message\n\r");
+    print(pThis, "\tclear - clear screen\n\r");
+    print(pThis, "\tlist  - list all commands in tree\n\r");
+    print(pThis, "\tname[string] - print 'name' value if no 'string', set name value to 'string' if 'string' present\n\r");
+    print(pThis, "\tlisp - dummy command for demonstation auto-completion, while inputed 'l+<TAB>'\n\r");
 }
 
-//*****************************************************************************
-// execute callback for microrl library
-// do what you want here, but don't write to argv!!! read only!!
+/**
+ * \brief           Execute callback for MicroRL library
+ *
+ * Do what you want here, but don't write to argv!!! read only!!
+ *
+ * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       argc: argument count
+ * \param[in]       argv: pointer array to token string
+ * \return          
+ */
 int execute(microrl_t* pThis, int argc, const char* const *argv) {
     int i = 0;
     // just iterate through argv word and compare it with your commands
     while (i < argc) {
         if (strcmp (argv[i], _CMD_HELP) == 0) {
-            print (pThis, "microrl library based shell v 1.0\n\r");
+            print(pThis, "microrl library based shell v 1.0\n\r");
             print_help();        // print help
         } else if (strcmp (argv[i], _CMD_NAME) == 0) {
             if ((++i) < argc) { // if value preset
@@ -126,9 +167,14 @@ int execute(microrl_t* pThis, int argc, const char* const *argv) {
     return 0;
 }
 
-#ifdef _USE_COMPLETE
-//*****************************************************************************
-// completion callback for microrl library
+#if MICRORL_CFG_USE_COMPLETE
+/**
+ * \brief           Completion callback for MicroRL library
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       argc: argument count
+ * \param[in]       argv: pointer array to token string
+ * \return          NULL-terminated string, contain complite variant split by 'Whitespace'
+ */
 char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
     int j = 0;
 
@@ -164,9 +210,14 @@ char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
     // return set of variants
     return compl_word;
 }
-#endif
+#endif /* MICRORL_CFG_USE_COMPLETE */
 
-//*****************************************************************************
+#if MICRORL_CFG_USE_CTRL_C
+/**
+ * \brief           Ctrl+C terminal signal function
+ * \param[in]       pThis: \ref microrl_t working instance
+ */
 void sigint(microrl_t* pThis) {
-    print (pThis, "^C catched!\n\r");
+    print(pThis, "^C catched!\n\r");
 }
+#endif /* MICRORL_CFG_USE_CTRL_C */

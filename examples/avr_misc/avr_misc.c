@@ -1,21 +1,44 @@
-#include <microrl.h>
+/**
+ * \file            avr_misc.c
+ * \brief           AVR platform specific implementation routines (for Atmega8, rewrite for your MC)
+ */
+
+/*
+ * Copyright (c) 2011 Eugene SAMOYLOV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * This file is part of MicroRL - Micro Read Line library for small and embedded devices.
+ *
+ * Author:          Eugene SAMOYLOV aka Helius <ghelius@gmail.com>
+ * Version:         1.7.0-dev
+ */
+
 #include <string.h>
 #include <stdlib.h>
 #include <avr/io.h>
+#include "microrl.h"
 
-/*
-AVR platform specific implementation routines (for Atmega8, rewrite for your MC)
-*/
-#define _AVR_DEMO_VER    "1.0"
+#define _AVR_DEMO_VER       "1.0"
 
 // definition commands word
-#define _CMD_HELP     "help"
-#define _CMD_CLEAR    "clear"
-#define _CMD_CLR      "clear_port"
-#define _CMD_SET      "set_port"
+#define _CMD_HELP           "help"
+#define _CMD_CLEAR          "clear"
+#define _CMD_CLR            "clear_port"
+#define _CMD_SET            "set_port"
 // arguments for set/clear
-#define _SCMD_PB      "port_b"
-#define _SCMD_PD      "port_d"
+#define _SCMD_PB            "port_b"
+#define _SCMD_PD            "port_d"
 
 #define _NUM_OF_CMD              4
 #define _NUM_OF_SETCLEAR_SCMD    2
@@ -28,11 +51,12 @@ char* set_clear_key[] = {_SCMD_PB, _SCMD_PD};
 // array for comletion
 char* compl_word[_NUM_OF_CMD + 1];
 
+//void put_char(unsigned char ch);
 
-void put_char(unsigned char ch);
 
-
-//*****************************************************************************
+/**
+ * \brief           Init AVR platform
+ */
 void init(void) {
     UBRRL = 8; // 19200 bps on 16MHz
     UCSRC = (1 << URSEL) | (1 << UCSZ1) | (1 << UCSZ0);
@@ -41,13 +65,17 @@ void init(void) {
     DDRD = 0xFF;
 }
 
-////*****************************************************************************
+
 //void put_char(unsigned char ch) {
 //    while (!(UCSRA & (1 << UDRE)));
 //    UDR = (unsigned char) ch;
 //}
 
-//*****************************************************************************
+/**
+ * \brief           Print to IO stream callback for MicroRL library
+ * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       str: Output string
+ */
 void print(microrl_t* pThis, const char* str) {
     int i = 0;
     while (str[i] != 0) {
@@ -56,13 +84,19 @@ void print(microrl_t* pThis, const char* str) {
     }
 }
 
-//*****************************************************************************
+/**
+ * \brief           Get char user pressed
+ * \return          Input character
+ */
 char get_char(void) {
     while (!(UCSRA & (1<<RXC)));
     return UDR;
 }
 
-//*****************************************************************************
+/**
+ * \brief           HELP command callback
+ * \param[in]       pThis: \ref microrl_t working instance
+ */
 void print_help(microrl_t* pThis) {
     print(pThis, "Use TAB key for completion\n\rCommand:\n\r");
     print(pThis, "\tclear               - clear screen\n\r");
@@ -70,7 +104,13 @@ void print_help(microrl_t* pThis) {
     print(pThis, "\tclear_port port pin - set 0 port[pin] value, support only 'port_b' and 'port_d'\n\r");
 }
 
-//*****************************************************************************
+/**
+ * \brief           SET PIN VALUE OF PORT command callback
+ * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       port: MCU GPIO port
+ * \param[in]       pin: MCU GPIO pin
+ * \param[in]       val: '0' to pulldown pin, '1' to pullup pin
+ */
 void set_port_val(microrl_t* pThis, unsigned char* port, int pin, int val) {
     if ((*port == PORTD) && (pin < 2) && (pin > 7)) {
         print(pThis, "only 2..7 pin avialable for PORTD\n\r");
@@ -89,9 +129,16 @@ void set_port_val(microrl_t* pThis, unsigned char* port, int pin, int val) {
     }
 }
 
-//*****************************************************************************
-// execute callback for microrl library
-// do what you want here, but don't write to argv!!! read only!!
+/**
+ * \brief           Execute callback for MicroRL library
+ *
+ * Do what you want here, but don't write to argv!!! read only!!
+ *
+ * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       argc: argument count
+ * \param[in]       argv: pointer array to token string
+ * \return          
+ */
 int execute(microrl_t* pThis, int argc, const char* const *argv) {
     int i = 0;
     // just iterate through argv word and compare it with your commands
@@ -142,9 +189,14 @@ int execute(microrl_t* pThis, int argc, const char* const *argv) {
     return 0;
 }
 
-#ifdef _USE_COMPLETE
-//*****************************************************************************
-// completion callback for microrl library
+#if MICRORL_CFG_USE_COMPLETE
+/**
+ * \brief           Completion callback for MicroRL library
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       argc: argument count
+ * \param[in]       argv: pointer array to token string
+ * \return          NULL-terminated string, contain complite variant split by 'Whitespace'
+ */
 char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
     int j = 0;
 
@@ -181,9 +233,14 @@ char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
     // return set of variants
     return compl_word;
 }
-#endif
+#endif /* MICRORL_CFG_USE_COMPLETE */
 
-//*****************************************************************************
+#if MICRORL_CFG_USE_CTRL_C
+/**
+ * \brief           Ctrl+C terminal signal function
+ * \param[in]       pThis: \ref microrl_t working instance
+ */
 void sigint(microrl_t* pThis) {
     print(pThis, "^C catched!\n\r");
 }
+#endif /* MICRORL_CFG_USE_CTRL_C */
