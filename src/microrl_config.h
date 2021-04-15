@@ -5,6 +5,7 @@
 
 /*
  * Copyright (c) 2011 Eugene SAMOYLOV
+ * Copyright (c) 2021 Dmitry KARASEV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

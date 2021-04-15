@@ -5,6 +5,7 @@
 
 /*
  * Copyright (c) 2011 Eugene SAMOYLOV
+ * Copyright (c) 2021 Dmitry KARASEV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,6 +123,15 @@ typedef enum echo_ {
     OFF
 } echo_t;
 
+/* Forward declarations */
+struct microrl;
+#ifdef _USE_HISTORY
+struct ring_history;
+#endif /* _USE_HISTORY */
+#ifdef _USE_QUOTING
+struct quoted_token;
+#endif /* _USE_QUOTING */
+
 #ifdef _USE_HISTORY
 /**
  * \brief           History struct, contains internal variable
@@ -129,7 +139,7 @@ typedef enum echo_ {
  * History stores in static ring buffer for memory saving
  *
  */
-typedef struct {
+typedef struct ring_history {
     char ring_buf [_RING_HISTORY_LEN];
     int begin;
     int end;
@@ -142,17 +152,49 @@ typedef struct {
 /**
  * \brief           Quoted token struct, points to begin and end marks
  */
-typedef struct {
+typedef struct quoted_token {
     char* begin;
     char* end;
 } quoted_token_t;
 #endif /* _USE_QUOTING */
 
 /**
+ * \brief           Command execute function prototype
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       argc: argument count
+ * \param[in]       argv: pointer array to token string
+ * \return          
+ */
+typedef int       (*exec_fn)(struct microrl* pThis, int argc, const char* const *argv);
+
+/**
+ * \brief           Auto-complete function prototype
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       argc: argument count
+ * \param[in]       argv: pointer array to token string
+ * \return          NULL-terminated string, contain complite variant split by 'Whitespace'
+ *                  If complite token found, it's must contain only one token to be complitted
+ *                  Empty string if complite not found, and multiple string if there are some token
+ */
+typedef char **   (*get_compl_fn)(struct microrl* pThis, int argc, const char* const *argv);
+
+/**
+ * \brief           Character output function prototype
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in]       ch: Character to print
+ */
+typedef void      (*print_fn)(struct microrl* pThis, const char* ch);
+
+/**
+ * \brief           Ctrl+C terminal signal function prototype
+ * \param[in,out]   pThis: \ref microrl_t working instance
+ */
+typedef void      (*sigint_fn)(struct microrl* pThis);
+
+/**
  * \brief           MicroRL struct, contains internal library data
  */
-typedef struct microrl microrl_t;
-struct microrl {
+typedef struct microrl {
 #ifdef _USE_ESC_SEQ
     char escape_seq;
     char escape;
@@ -161,29 +203,29 @@ struct microrl {
 #ifdef _USE_HISTORY
     ring_history_t ring_hist;          // history object
 #endif
-    char* prompt_str;                  // pointer to prompt string
+    const char* prompt_str;            // pointer to prompt string
     char cmdline[_COMMAND_LINE_LEN];   // cmdline buffer
     int cmdlen;                        // last position in command line
     int cursor;                        // input cursor
 #ifdef _USE_QUOTING
-    quoted_token_t quotes[_QUOTED_TOKEN_NMB]; // pointers to quoted tokens
+    struct quoted_token quotes[_QUOTED_TOKEN_NMB]; // pointers to quoted tokens
 #endif
-    int (*execute)(microrl_t* pThis, int argc, const char* const *argv);             // ptr to 'execute' callback
-    char ** (*get_completion)(microrl_t* pThis, int argc, const char* const *argv);  // ptr to 'completion' callback
-    void (*print)(microrl_t* pThis, const char*);                                    // ptr to 'print' callback
+    exec_fn execute;              // ptr to 'execute' callback
+    get_compl_fn get_completion;  // ptr to 'completion' callback
+    print_fn print;               // ptr to 'print' callback
 #ifdef _USE_CTRL_C
-    void (*sigint)(microrl_t* pThis);
+    sigint_fn sigint;
 #endif
     echo_t echo;
     int start_password;                // position when start printing '*' chars
     void* userdata;                    // generic user data storage
-};
+} microrl_t;
 
-void microrl_init(microrl_t* pThis, void (*print)(microrl_t* pThis, const char*));
-void microrl_set_complete_callback(microrl_t* pThis, char ** (*get_completion)(microrl_t*, int, const char* const *));
-void microrl_set_execute_callback(microrl_t* pThis, int (*execute)(microrl_t*, int, const char* const *));
+void microrl_init(microrl_t* pThis, print_fn print);
+void microrl_set_complete_callback(microrl_t* pThis, get_compl_fn get_completion);
+void microrl_set_execute_callback(microrl_t* pThis, exec_fn execute);
 #ifdef _USE_CTRL_C
-void microrl_set_sigint_callback(microrl_t* pThis, void (*sigintf)(microrl_t*));
+void microrl_set_sigint_callback(microrl_t* pThis, sigint_fn sigint);
 #endif /* _USE_CTRL_C */
 
 void microrl_set_echo(microrl_t* pThis, echo_t echo);

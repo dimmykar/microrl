@@ -5,6 +5,7 @@
 
 /*
  * Copyright (c) 2011 Eugene SAMOYLOV
+ * Copyright (c) 2021 Dmitry KARASEV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -466,9 +467,9 @@ static void terminal_print_line(microrl_t* pThis, int pos, int reset) {
 /**
  * \brief           Init internal data, calls once at start up
  * \param[in,out]   pThis: \ref microrl_t working instance
- * \param[in]       print: 
+ * \param[in]       print: Callback function for character output
  */
-void microrl_init(microrl_t* pThis, void (*print)(microrl_t*, const char*)) {
+void microrl_init(microrl_t* pThis, print_fn print) {
     memset(pThis, 0, sizeof(microrl_t));
     pThis->prompt_str = prompt_default;
     pThis->print = print;
@@ -482,25 +483,18 @@ void microrl_init(microrl_t* pThis, void (*print)(microrl_t*, const char*)) {
 /**
  * \brief           Set pointer to callback complition func, that called when user press 'Tab'
  * \param[in,out]   pThis: \ref microrl_t working instance
- * \param[in]       get_completion: 
-// * \param[in]       argc: argument count
-// * \param[in]       argv: pointer array to token string
-// * \return          NULL-terminated string, contain complite variant split by 'Whitespace'
-// *                  If complite token found, it's must contain only one token to be complitted
-// *                  Empty string if complite not found, and multiple string if there are some token
+ * \param[in]       get_completion: Auto-complete string callback
  */
-void microrl_set_complete_callback(microrl_t* pThis, char ** (*get_completion)(microrl_t*, int, const char* const *)) {
+void microrl_set_complete_callback(microrl_t* pThis, get_compl_fn get_completion) {
     pThis->get_completion = get_completion;
 }
 
 /**
  * \brief           Pointer to callback func, that called when user press 'Enter'
  * \param[in,out]   pThis: \ref microrl_t working instance
- * \param[in]       execute: 
-// * \param[in]       argc: argument count
-// * \param[in]       argv: pointer array to token string
+ * \param[in]       execute: Command execute callback
  */
-void microrl_set_execute_callback(microrl_t* pThis, int (*execute)(microrl_t*, int, const char* const *)) {
+void microrl_set_execute_callback(microrl_t* pThis, exec_fn execute) {
     pThis->execute = execute;
 }
 
@@ -508,10 +502,10 @@ void microrl_set_execute_callback(microrl_t* pThis, int (*execute)(microrl_t*, i
 /**
  * \brief           Set callback for Ctrl+C terminal signal
  * \param[in,out]   pThis: \ref microrl_t working instance
- * \param[in]       sigintf: 
+ * \param[in]       sigint: Ctrl+C terminal signal callback
  */
-void microrl_set_sigint_callback(microrl_t* pThis, void (*sigintf)(microrl_t*)) {
-    pThis->sigint = sigintf;
+void microrl_set_sigint_callback(microrl_t* pThis, void (*sigint)(microrl_t*)) {
+    pThis->sigint = sigint;
 }
 #endif
 
@@ -530,9 +524,9 @@ void microrl_set_echo(microrl_t* pThis, echo_t echo) {
 
 #ifdef _USE_HISTORY
 /**
- * \brief           
+ * \brief           Restore record to command line from history buffer
  * \param[in,out]   pThis: \ref microrl_t working instance
- * \param[in]       dir: 
+ * \param[in]       dir: Search direction in history ring buffer
  */
 static void hist_search(microrl_t* pThis, int dir) {
     int len = hist_restore_line(&pThis->ring_hist, pThis->cmdline, dir);
@@ -548,8 +542,8 @@ static void hist_search(microrl_t* pThis, int dir) {
 /**
  * \brief           Handle escape sequences
  * \param[in,out]   pThis: \ref microrl_t working instance
- * \param[in]       ch:
- * \return          
+ * \param[in]       ch: Input character
+ * \return          '1' if escape sequence processed, '0' otherwise
  */
 static int escape_process(microrl_t* pThis, char ch) {
     if (ch == '[') {
@@ -635,7 +629,7 @@ int microrl_insert_text(microrl_t* pThis, char* text, int len) {
 /**
  * \brief           Remove len chars backwards at cursor
  * \param[in,out]   pThis: \ref microrl_t working instance
- * \param[in]       len: 
+ * \param[in]       len: Number of chars to remove
  */
 static void microrl_backspace(microrl_t* pThis, int len) {
     if (pThis->cursor >= len) {
@@ -750,7 +744,7 @@ static void microrl_get_complite(microrl_t* pThis) {
 #endif /* _USE_COMPLETE */
 
 /**
- * \brief           
+ * \brief           Processing input string and calling execute() callback
  * \param[in,out]   pThis: \ref microrl_t working instance
  */
 static void new_line_handler(microrl_t* pThis) {
@@ -792,10 +786,10 @@ static void new_line_handler(microrl_t* pThis) {
 /**
  * \brief           Insert char to command line
  *
- * For example call in usart RX interrupt
+ * For example calls in usart RX interrupt
  *
  * \param[in,out]   pThis: \ref microrl_t working instance
- * \param[in]       ch: 
+ * \param[in]       ch: Printing to terminal character 
  */
 void microrl_insert_char(microrl_t* pThis, int ch) {
 #ifdef _USE_ESC_SEQ
