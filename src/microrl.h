@@ -125,14 +125,14 @@ typedef enum echo_ {
 
 /* Forward declarations */
 struct microrl;
-#ifdef _USE_HISTORY
+#if MICRORL_CFG_USE_HISTORY
 struct ring_history;
-#endif /* _USE_HISTORY */
-#ifdef _USE_QUOTING
+#endif /* MICRORL_CFG_USE_HISTORY */
+#if MICRORL_CFG_USE_QUOTING
 struct quoted_token;
-#endif /* _USE_QUOTING */
+#endif /* MICRORL_CFG_USE_QUOTING */
 
-#ifdef _USE_HISTORY
+#if MICRORL_CFG_USE_HISTORY
 /**
  * \brief           History struct, contains internal variable
  *
@@ -140,15 +140,15 @@ struct quoted_token;
  *
  */
 typedef struct ring_history {
-    char ring_buf [_RING_HISTORY_LEN];
+    char ring_buf [MICRORL_CFG_RING_HISTORY_LEN];
     int begin;
     int end;
     int cur;
 } ring_history_t;
-#endif /* _USE_HISTORY */
+#endif /* MICRORL_CFG_USE_HISTORY */
 
 
-#ifdef _USE_QUOTING
+#if MICRORL_CFG_USE_QUOTING
 /**
  * \brief           Quoted token struct, points to begin and end marks
  */
@@ -156,7 +156,7 @@ typedef struct quoted_token {
     char* begin;
     char* end;
 } quoted_token_t;
-#endif /* _USE_QUOTING */
+#endif /* MICRORL_CFG_USE_QUOTING */
 
 /**
  * \brief           Command execute function prototype
@@ -195,38 +195,42 @@ typedef void      (*sigint_fn)(struct microrl* pThis);
  * \brief           MicroRL struct, contains internal library data
  */
 typedef struct microrl {
-#ifdef _USE_ESC_SEQ
+#if MICRORL_CFG_USE_ESC_SEQ
     char escape_seq;
     char escape;
-#endif
+#endif /* MICRORL_CFG_USE_ESC_SEQ */
     char last_endl;                    // either 0 or the CR or LF that just triggered a newline
-#ifdef _USE_HISTORY
+#if MICRORL_CFG_USE_HISTORY
     ring_history_t ring_hist;          // history object
-#endif
+#endif /* MICRORL_CFG_USE_HISTORY */
     const char* prompt_str;            // pointer to prompt string
-    char cmdline[_COMMAND_LINE_LEN];   // cmdline buffer
+    char cmdline[MICRORL_CFG_CMDLINE_LEN];   // cmdline buffer
     int cmdlen;                        // last position in command line
     int cursor;                        // input cursor
-#ifdef _USE_QUOTING
+#if MICRORL_CFG_USE_QUOTING
     struct quoted_token quotes[_QUOTED_TOKEN_NMB]; // pointers to quoted tokens
-#endif
+#endif /* MICRORL_CFG_USE_QUOTING */
     exec_fn execute;              // ptr to 'execute' callback
+#if MICRORL_CFG_USE_COMPLETE
     get_compl_fn get_completion;  // ptr to 'completion' callback
+#endif /* MICRORL_CFG_USE_COMPLETE */
     print_fn print;               // ptr to 'print' callback
-#ifdef _USE_CTRL_C
+#if MICRORL_CFG_USE_CTRL_C
     sigint_fn sigint;
-#endif
+#endif /* MICRORL_CFG_USE_CTRL_C */
     echo_t echo;
     int start_password;                // position when start printing '*' chars
     void* userdata;                    // generic user data storage
 } microrl_t;
 
 void microrl_init(microrl_t* pThis, print_fn print);
+#if MICRORL_CFG_USE_COMPLETE
 void microrl_set_complete_callback(microrl_t* pThis, get_compl_fn get_completion);
+#endif /* MICRORL_CFG_USE_COMPLETE */
 void microrl_set_execute_callback(microrl_t* pThis, exec_fn execute);
-#ifdef _USE_CTRL_C
+#if MICRORL_CFG_USE_CTRL_C
 void microrl_set_sigint_callback(microrl_t* pThis, sigint_fn sigint);
-#endif /* _USE_CTRL_C */
+#endif /* MICRORL_CFG_USE_CTRL_C */
 
 void microrl_set_echo(microrl_t* pThis, echo_t echo);
 

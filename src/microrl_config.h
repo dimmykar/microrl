@@ -43,7 +43,7 @@ extern "C" {
 
 /**
  * \defgroup        MICRORL_CFG Configuration
- * \brief           MicroRL configs
+ * \brief           MicroRL configurations
  * \{
  */
 
@@ -53,8 +53,8 @@ extern "C" {
  *                  not use for storing inputed char.
  *                  If user input chars more then it parametrs - 1, chars not added to command line.
  */
-#ifndef _COMMAND_LINE_LEN
-#define _COMMAND_LINE_LEN      (1 + 60)
+#ifndef MICRORL_CFG_CMDLINE_LEN
+#define MICRORL_CFG_CMDLINE_LEN               (1 + 60)
 #endif
 
 /**
@@ -64,25 +64,25 @@ extern "C" {
  *                  Token is word separate by white space, for example 3 token line:
  *                  "IRin> set mode test"
  */
-#ifndef _COMMAND_TOKEN_NMB
-#define _COMMAND_TOKEN_NMB     8
+#ifndef MICRORL_CFG_CMD_TOKEN_NMB
+#define MICRORL_CFG_CMD_TOKEN_NMB             8
 #endif
 
 /**
  * \brief           Define you prompt string here. You can use colors escape code, for highlight you prompt,
  *                  for example this prompt will green color (if you terminal supports color)
  */
-#ifndef _PROMPT_DEFAULT
-#define _PROMPT_DEFAULT        "\033[32mIRin >\033[0m "  // green color
-//#define _PROMPT_DEFAULT        "IRin > "
+#ifndef MICRORL_CFG_PROMPT_STRING
+#define MICRORL_CFG_PROMPT_STRING             "\033[32mIRin >\033[0m "
+//#define MICRORL_CFG_PROMPT_STRING             "IRin > "
 #endif
 
 /**
  * \brief           Define prompt text (without ESC sequence, only text) prompt length, it needs because if you use
  *                  ESC sequence, it's not possible detect only text length
  */
-#ifndef _PROMPT_LEN
-#define _PROMPT_LEN            7
+#ifndef MICRORL_CFG_PROMPT_LEN
+#define MICRORL_CFG_PROMPT_LEN                7
 #endif
 
 /**
@@ -91,16 +91,16 @@ extern "C" {
  *                  NULL to callback ptr and do not use it, but for memory saving tune, 
  *                  if you are not going to use it - disable this define.
  */
-#ifndef _USE_COMPLETE
-#define _USE_COMPLETE          1
+#ifndef MICRORL_CFG_USE_COMPLETE
+#define MICRORL_CFG_USE_COMPLETE              1
 #endif
 
 /**
  * \brief           Define it, if you want to allow quoting command arguments to include spaces.
  *                  Depends upon _QUOTED_TOKEN_NMB parameter
  */
-#ifndef _USE_QUOTING
-#define _USE_QUOTING           1
+#ifndef MICRORL_CFG_USE_QUOTING
+#define MICRORL_CFG_USE_QUOTING               1
 #endif
 
 /**
@@ -111,8 +111,8 @@ extern "C" {
  *                  Quoting protects whitespace, for example 2 quoted tokens:
  *                  "IRin> set wifi 'Home Net' 'this is a secret'"
  */
-#ifndef _QUOTED_TOKEN_NMB
-#define _QUOTED_TOKEN_NMB      2
+#ifndef MICRORL_CFG_QUOTED_TOKEN_NMB
+#define MICRORL_CFG_QUOTED_TOKEN_NMB          2
 #endif
 
 /**
@@ -120,8 +120,8 @@ extern "C" {
  *                  set stored value to cmdline, if UP and DOWN key pressed. Using history add
  *                  memory consuming, depends from _RING_HISTORY_LEN parametr
  */
-#ifndef _USE_HISTORY
-#define _USE_HISTORY           1
+#ifndef MICRORL_CFG_USE_HISTORY
+#define MICRORL_CFG_USE_HISTORY               1
 #endif
 
 /**
@@ -131,24 +131,24 @@ extern "C" {
  *                  but memory using more effective. We not prefer dinamic memory allocation for
  *                  small and embedded devices. Overhead is 2 char on each saved line
  */
-#ifndef _RING_HISTORY_LEN
-#define _RING_HISTORY_LEN      64
+#ifndef MICRORL_CFG_RING_HISTORY_LEN
+#define MICRORL_CFG_RING_HISTORY_LEN          64
 #endif
 
 /**
  * \brief           Size of the buffer used for piecemeal printing of part or all of the command
  *                  line.  Allocated on the stack.  Must be at least 16.                 
  */
-#ifndef _PRINT_BUFFER_LEN
-#define _PRINT_BUFFER_LEN      40
+#ifndef MICRORL_CFG_PRINT_BUFFER_LEN
+#define MICRORL_CFG_PRINT_BUFFER_LEN          40
 #endif
 
 /**
  * \brief           Enable Handling terminal ESC sequence. If disabling, then cursor arrow, HOME, END will not work,
  *                  use Ctrl+A(B,F,P,N,A,E,H,K,U,C) see README, but decrease code memory.
  */
-#ifndef _USE_ESC_SEQ
-#define _USE_ESC_SEQ           1
+#ifndef MICRORL_CFG_USE_ESC_SEQ
+#define MICRORL_CFG_USE_ESC_SEQ               1
 #endif
 
 /**
@@ -157,8 +157,8 @@ extern "C" {
  *                  code size on AVR (avr-gcc build).
  *                  Try to build with and without, and compare total code size for tune library.
  */
-#ifndef _USE_LIBC_STDIO
-#define _USE_LIBC_STDIO        1
+#ifndef MICRORL_CFG_USE_LIBC_STDIO
+#define MICRORL_CFG_USE_LIBC_STDIO            1
 #endif
 
 /**
@@ -167,15 +167,15 @@ extern "C" {
  *                  characters sent to the terminal, but should be left undefined if the terminal
  *                  will also simulate a linefeed when it receives the carriage return.
  */
-#ifndef _USE_CARRIAGE_RETURN
-#define _USE_CARRIAGE_RETURN   1
+#ifndef MICRORL_CFG_USE_CARRIAGE_RETURN
+#define MICRORL_CFG_USE_CARRIAGE_RETURN       1
 #endif
 
 /**
  * \brief           Enable 'interrupt signal' callback, if user press Ctrl+C
  */
-#ifndef _USE_CTRL_C
-#define _USE_CTRL_C            1
+#ifndef MICRORL_CFG_USE_CTRL_C
+#define MICRORL_CFG_USE_CTRL_C                1
 #endif
 
 /**
@@ -184,8 +184,8 @@ extern "C" {
  * \note            Enable it, if you call 'microrl_init' after your communication subsystem 
  *                  already initialize and ready to print message
  */
-#ifndef _ENABLE_INIT_PROMPT
-#define _ENABLE_INIT_PROMPT    1
+#ifndef MICRORL_CFG_ENABLE_INIT_PROMPT
+#define MICRORL_CFG_ENABLE_INIT_PROMPT        1
 #endif
 
 /**
@@ -193,8 +193,8 @@ extern "C" {
  *
  * The symbol must be "\r", "\n", "\r\n" or "\n\r"
  */
-#ifndef ENDL
-#define ENDL                   "\n"
+#ifndef MICRORL_CFG_END_LINE
+#define MICRORL_CFG_END_LINE                  "\r\n"
 #endif
 
 /**
