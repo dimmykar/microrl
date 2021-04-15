@@ -23,7 +23,7 @@
  *
  * Authors:         Eugene SAMOYLOV aka Helius <ghelius@gmail.com>,
  *                  Dmitry KARASEV <karasevsdmitry@yandex.ru>
- * Version:         1.6.1
+ * Version:         1.7.0-dev
  */
 
 /*
@@ -34,16 +34,16 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
-#ifdef _USE_LIBC_STDIO
+#if _USE_LIBC_STDIO
 #include <stdio.h>
 #endif /* _USE_LIBC_STDIO */
 #include "microrl.h"
 
 static char* prompt_default = _PROMPT_DEFAULT;
 
-#ifdef _USE_HISTORY
+#if _USE_HISTORY
 
-#ifdef _HISTORY_DEBUG
+#if _HISTORY_DEBUG
 /**
  * \brief           Print history buffer content on screen
  * \param[in]       pThis: Pointer to \ref ring_history_t structure
@@ -147,7 +147,7 @@ static void hist_save_line(ring_history_t* pThis, char* line, int len) {
     }
     pThis->ring_buf[pThis->end] = 0;
     pThis->cur = 0;
-#ifdef _HISTORY_DEBUG
+#if _HISTORY_DEBUG
     print_hist(pThis);
 #endif /* _HISTORY_DEBUG */
 }
@@ -235,7 +235,7 @@ static int hist_restore_line(ring_history_t* pThis, char* line, int dir) {
 
 
 
-#ifdef _USE_QUOTING
+#if _USE_QUOTING
 /**
  * \brief           Restore end quote marks in command line
  * \param[in,out]   pThis: \ref microrl_t working instance
@@ -264,7 +264,7 @@ static void restore(microrl_t* pThis) {
 static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
     int i = 0;
     int ind = 0;
-#ifdef _USE_QUOTING
+#if _USE_QUOTING
     int iq = 0;
     char quote = 0;
     for (iq = 0; iq < _QUOTED_TOKEN_NMB; ++iq) {
@@ -283,7 +283,7 @@ static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
             return i;
         }
 
-#ifdef _USE_QUOTING
+#if _USE_QUOTING
         if (pThis->cmdline[ind] == '\'' || pThis->cmdline[ind] == '"') {
             if (iq >= _QUOTED_TOKEN_NMB) {
                 restore (pThis);
@@ -296,7 +296,7 @@ static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
 #endif /* _USE_QUOTING */
         tkn_arr[i++] = pThis->cmdline + ind;
         if (i >= _COMMAND_TOKEN_NMB) {
-#ifdef _USE_QUOTING
+#if _USE_QUOTING
             restore(pThis);
 #endif /* _USE_QUOTING */
             return -1;
@@ -304,11 +304,11 @@ static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
         // go to the first whitespace (zero for us)
         while (ind < limit) {
             if (pThis->cmdline[ind] == '\0') {
-#ifdef _USE_QUOTING
+#if _USE_QUOTING
                 if (!quote) {
 #endif /* _USE_QUOTING */
                     break;
-#ifdef _USE_QUOTING
+#if _USE_QUOTING
                 }
                 pThis->cmdline[ind] = ' ';
             } else if (pThis->cmdline[ind] == quote) {
@@ -325,7 +325,7 @@ static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
             ind++;
         }
         if (!(ind < limit)) {
-#ifdef _USE_QUOTING
+#if _USE_QUOTING
             if (quote) {
                 restore(pThis);
                 return -1;
@@ -386,7 +386,7 @@ static char * generate_move_cursor(char* str, int offset) {
         return str;
     }
 
-#ifdef _USE_LIBC_STDIO
+#if _USE_LIBC_STDIO
     str += sprintf(str, "\033[%d%c", offset, c);
 #else
     *str++ = '\033';
@@ -432,7 +432,7 @@ static void terminal_print_line(microrl_t* pThis, int pos, int reset) {
         char* j = str;
 
         if (reset) {
-#ifdef _USE_CARRIAGE_RETURN
+#if _USE_CARRIAGE_RETURN
             *j++ = '\r';
             j = generate_move_cursor(j, _PROMPT_LEN + pos);
 #else
@@ -473,7 +473,7 @@ void microrl_init(microrl_t* pThis, print_fn print) {
     memset(pThis, 0, sizeof(microrl_t));
     pThis->prompt_str = prompt_default;
     pThis->print = print;
-#ifdef _ENABLE_INIT_PROMPT
+#if _ENABLE_INIT_PROMPT
     print_prompt (pThis);
 #endif /* _ENABLE_INIT_PROMPT */
     pThis->echo = ON;
@@ -498,7 +498,7 @@ void microrl_set_execute_callback(microrl_t* pThis, exec_fn execute) {
     pThis->execute = execute;
 }
 
-#ifdef _USE_CTRL_C
+#if _USE_CTRL_C
 /**
  * \brief           Set callback for Ctrl+C terminal signal
  * \param[in,out]   pThis: \ref microrl_t working instance
@@ -522,7 +522,7 @@ void microrl_set_echo(microrl_t* pThis, echo_t echo) {
     pThis->echo = echo;
 }
 
-#ifdef _USE_HISTORY
+#if _USE_HISTORY
 /**
  * \brief           Restore record to command line from history buffer
  * \param[in,out]   pThis: \ref microrl_t working instance
@@ -538,7 +538,7 @@ static void hist_search(microrl_t* pThis, int dir) {
 }
 #endif /* _USE_HISTORY */
 
-#ifdef _USE_ESC_SEQ
+#if _USE_ESC_SEQ
 /**
  * \brief           Handle escape sequences
  * \param[in,out]   pThis: \ref microrl_t working instance
@@ -551,12 +551,12 @@ static int escape_process(microrl_t* pThis, char ch) {
         return 0;
     } else if (pThis->escape_seq == _ESC_BRACKET) {
         if (ch == 'A') {
-#ifdef _USE_HISTORY
+#if _USE_HISTORY
             hist_search(pThis, _HIST_UP);
 #endif /* _USE_HISTORY */
             return 1;
         } else if (ch == 'B') {
-#ifdef _USE_HISTORY
+#if _USE_HISTORY
             hist_search(pThis, _HIST_DOWN);
 #endif /* _USE_HISTORY */
             return 1;
@@ -656,7 +656,7 @@ static void microrl_delete(microrl_t* pThis) {
     }
 }
 
-#ifdef _USE_COMPLETE
+#if _USE_COMPLETE
 
 /**
  * \brief           
@@ -708,7 +708,7 @@ static void microrl_get_complite(microrl_t* pThis) {
         tkn_arr[status++] = "";
     }
     compl_token = pThis->get_completion(pThis, status, tkn_arr);
-#ifdef _USE_QUOTING
+#if _USE_QUOTING
     restore(pThis);
 #endif /* _USE_QUOTING */
     if (compl_token[0] != NULL) {
@@ -752,7 +752,7 @@ static void new_line_handler(microrl_t* pThis) {
     int status;
 
     terminal_newline(pThis);
-#ifdef _USE_HISTORY
+#if _USE_HISTORY
     if ((pThis->cmdlen > 0) && (ECHO_IS_ON())) {
         hist_save_line(&pThis->ring_hist, pThis->cmdline, pThis->cmdlen);
     }
@@ -764,7 +764,7 @@ static void new_line_handler(microrl_t* pThis) {
     status = split(pThis, pThis->cmdlen, tkn_arr);
     if (status == -1) {
 //        pThis->print(pThis, "ERROR: Max token amount exseed\n");
-#ifdef _USE_QUOTING
+#if _USE_QUOTING
         pThis->print(pThis, "ERROR:too many tokens or invalid quoting");
 #else
         pThis->print(pThis, "ERROR:too many tokens");
@@ -778,7 +778,7 @@ static void new_line_handler(microrl_t* pThis) {
     pThis->cmdlen = 0;
     pThis->cursor = 0;
     memset(pThis->cmdline, 0, _COMMAND_LINE_LEN);
-#ifdef _USE_HISTORY
+#if _USE_HISTORY
     pThis->ring_hist.cur = 0;
 #endif /* _USE_HISTORY */
 }
@@ -792,7 +792,7 @@ static void new_line_handler(microrl_t* pThis) {
  * \param[in]       ch: Printing to terminal character 
  */
 void microrl_insert_char(microrl_t* pThis, int ch) {
-#ifdef _USE_ESC_SEQ
+#if _USE_ESC_SEQ
     if (pThis->escape) {
         if (escape_process(pThis, ch)) {
             pThis->escape = 0;
@@ -813,14 +813,14 @@ void microrl_insert_char(microrl_t* pThis, int ch) {
         pThis->last_endl = 0;
         switch (ch) {
             //-----------------------------------------------------
-#ifdef _USE_COMPLETE
+#if _USE_COMPLETE
             case KEY_HT:
                 microrl_get_complite(pThis);
                 break;
 #endif /* _USE_COMPLETE */
             //-----------------------------------------------------
             case KEY_ESC:
-#ifdef _USE_ESC_SEQ
+#if _USE_ESC_SEQ
                 pThis->escape = 1;
 #endif /* _USE_ESC_SEQ */
                 break;
@@ -862,13 +862,13 @@ void microrl_insert_char(microrl_t* pThis, int ch) {
                 break;
             //-----------------------------------------------------
             case KEY_DLE: //^P
-#ifdef _USE_HISTORY
+#if _USE_HISTORY
                 hist_search(pThis, _HIST_UP);
 #endif /* _USE_HISTORY */
                 break;
             //-----------------------------------------------------
             case KEY_SO: //^N
-#ifdef _USE_HISTORY
+#if _USE_HISTORY
                 hist_search(pThis, _HIST_DOWN);
 #endif /* _USE_HISTORY */
                 break;
@@ -896,7 +896,7 @@ void microrl_insert_char(microrl_t* pThis, int ch) {
                 terminal_print_line(pThis, 0, 0);
                 break;
             //-----------------------------------------------------
-#ifdef _USE_CTRL_C
+#if _USE_CTRL_C
             case KEY_ETX:
                 if (pThis->sigint != NULL) {
                     pThis->sigint(pThis);
@@ -923,7 +923,7 @@ void microrl_insert_char(microrl_t* pThis, int ch) {
                 }
                 break;
         }
-#ifdef _USE_ESC_SEQ
+#if _USE_ESC_SEQ
     }
 #endif /* _USE_ESC_SEQ */
 }

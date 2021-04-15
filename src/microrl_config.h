@@ -1,6 +1,6 @@
 /**
  * \file            microrl_config.h
- * \brief           MicroRL library config file
+ * \brief           MicroRL library default configurations
  */
 
 /*
@@ -23,19 +23,29 @@
  *
  * Authors:         Eugene SAMOYLOV aka Helius <ghelius@gmail.com>,
  *                  Dmitry KARASEV <karasevsdmitry@yandex.ru>
- * Version:         1.6.1
+ * Version:         1.7.0-dev
  */
 
-#ifndef MICRORL_HDR_CONFIG_H
-#define MICRORL_HDR_CONFIG_H
+#ifndef MICRORL_HDR_DEFAULT_CONFIG_H
+#define MICRORL_HDR_DEFAULT_CONFIG_H
 
+/* Uncomment to ignore user configs (or set macro in compiler flags) */
+/* #define MICRORL_IGNORE_USER_CONFIGS */
+
+/* Include application options */
+#ifndef MICRORL_IGNORE_USER_CONFIGS
+#include "microrl_user_config.h"
+#endif /* MICRORL_IGNORE_USER_CONFIGS */
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-
-/****************************** CONFIG SECTION ********************************/
+/**
+ * \defgroup        MICRORL_CFG Configuration
+ * \brief           MicroRL configs
+ * \{
+ */
 
 /**
  * \brief           Command line length, define cmdline buffer size. Set max number of chars + 1,
@@ -43,8 +53,9 @@ extern "C" {
  *                  not use for storing inputed char.
  *                  If user input chars more then it parametrs - 1, chars not added to command line.
  */
-#define _COMMAND_LINE_LEN      (1 + 100)                  // for 100 chars
-
+#ifndef _COMMAND_LINE_LEN
+#define _COMMAND_LINE_LEN      (1 + 60)
+#endif
 
 /**
  * \brief           Command token number, define max token it command line, if number of token 
@@ -53,23 +64,26 @@ extern "C" {
  *                  Token is word separate by white space, for example 3 token line:
  *                  "IRin> set mode test"
  */
+#ifndef _COMMAND_TOKEN_NMB
 #define _COMMAND_TOKEN_NMB     8
-
+#endif
 
 /**
  * \brief           Define you prompt string here. You can use colors escape code, for highlight you prompt,
  *                  for example this prompt will green color (if you terminal supports color)
  */
+#ifndef _PROMPT_DEFAULT
 #define _PROMPT_DEFAULT        "\033[32mIRin >\033[0m "  // green color
 //#define _PROMPT_DEFAULT        "IRin > "
-
+#endif
 
 /**
  * \brief           Define prompt text (without ESC sequence, only text) prompt length, it needs because if you use
  *                  ESC sequence, it's not possible detect only text length
  */
+#ifndef _PROMPT_LEN
 #define _PROMPT_LEN            7
-
+#endif
 
 /**
  * \brief           Define it, if you wanna use completion functional, also set completion callback in you code,
@@ -77,15 +91,17 @@ extern "C" {
  *                  NULL to callback ptr and do not use it, but for memory saving tune, 
  *                  if you are not going to use it - disable this define.
  */
-#define _USE_COMPLETE
-
+#ifndef _USE_COMPLETE
+#define _USE_COMPLETE          1
+#endif
 
 /**
  * \brief           Define it, if you want to allow quoting command arguments to include spaces.
  *                  Depends upon _QUOTED_TOKEN_NMB parameter
  */
-#define _USE_QUOTING
-
+#ifndef _USE_QUOTING
+#define _USE_QUOTING           1
+#endif
 
 /**
  * \brief           Quoted token number, define max number of tokens allowed to be quoted.  If the
@@ -95,16 +111,18 @@ extern "C" {
  *                  Quoting protects whitespace, for example 2 quoted tokens:
  *                  "IRin> set wifi 'Home Net' 'this is a secret'"
  */
+#ifndef _QUOTED_TOKEN_NMB
 #define _QUOTED_TOKEN_NMB      2
-
+#endif
 
 /**
  * \brief           Define it, if you wanna use history. It s work's like bash history, and
  *                  set stored value to cmdline, if UP and DOWN key pressed. Using history add
  *                  memory consuming, depends from _RING_HISTORY_LEN parametr
  */
-#define _USE_HISTORY
-
+#ifndef _USE_HISTORY
+#define _USE_HISTORY           1
+#endif
 
 /**
  * \brief           History ring buffer length, define static buffer size.
@@ -113,22 +131,25 @@ extern "C" {
  *                  but memory using more effective. We not prefer dinamic memory allocation for
  *                  small and embedded devices. Overhead is 2 char on each saved line
  */
+#ifndef _RING_HISTORY_LEN
 #define _RING_HISTORY_LEN      64
-
+#endif
 
 /**
  * \brief           Size of the buffer used for piecemeal printing of part or all of the command
  *                  line.  Allocated on the stack.  Must be at least 16.                 
  */
+#ifndef _PRINT_BUFFER_LEN
 #define _PRINT_BUFFER_LEN      40
-
+#endif
 
 /**
  * \brief           Enable Handling terminal ESC sequence. If disabling, then cursor arrow, HOME, END will not work,
  *                  use Ctrl+A(B,F,P,N,A,E,H,K,U,C) see README, but decrease code memory.
  */
-#define _USE_ESC_SEQ
-
+#ifndef _USE_ESC_SEQ
+#define _USE_ESC_SEQ           1
+#endif
 
 /**
  * \brief           Use sprintf from you standard complier library, but it gives some overhead.
@@ -136,8 +157,9 @@ extern "C" {
  *                  code size on AVR (avr-gcc build).
  *                  Try to build with and without, and compare total code size for tune library.
  */
-#define _USE_LIBC_STDIO
-
+#ifndef _USE_LIBC_STDIO
+#define _USE_LIBC_STDIO        1
+#endif
 
 /**
  * \brief           Use a single carriage return character to move the cursor to the left margin
@@ -145,14 +167,16 @@ extern "C" {
  *                  characters sent to the terminal, but should be left undefined if the terminal
  *                  will also simulate a linefeed when it receives the carriage return.
  */
-#define _USE_CARRIAGE_RETURN
-
+#ifndef _USE_CARRIAGE_RETURN
+#define _USE_CARRIAGE_RETURN   1
+#endif
 
 /**
  * \brief           Enable 'interrupt signal' callback, if user press Ctrl+C
  */
-#define _USE_CTRL_C
-
+#ifndef _USE_CTRL_C
+#define _USE_CTRL_C            1
+#endif
 
 /**
  * \brief           Print prompt at 'microrl_init', if enable, prompt will print at startup, 
@@ -160,28 +184,22 @@ extern "C" {
  * \note            Enable it, if you call 'microrl_init' after your communication subsystem 
  *                  already initialize and ready to print message
  */
-#undef _ENABLE_INIT_PROMPT
-
+#ifndef _ENABLE_INIT_PROMPT
+#define _ENABLE_INIT_PROMPT    1
+#endif
 
 /**
  * \brief           New line symbol
+ *
+ * The symbol must be "\r", "\n", "\r\n" or "\n\r"
  */
-#define _ENDL_LF
-
-#if defined(_ENDL_CR)
-#define ENDL                   "\r"
-#elif defined(_ENDL_CRLF)
-#define ENDL                   "\r\n"
-#elif defined(_ENDL_LF)
+#ifndef ENDL
 #define ENDL                   "\n"
-#elif defined(_ENDL_LFCR)
-#define ENDL                   "\n\r"
-#else
-#error "You must define new line symbol."
 #endif
 
-/************************** END OF CONFIG SECTION *****************************/
-
+/**
+ * \}
+ */
 
 #if _RING_HISTORY_LEN > 256
 #error "This history implementation (ring buffer with 1 byte iterator) allow 256 byte buffer size maximum"
@@ -191,5 +209,4 @@ extern "C" {
 }
 #endif /* __cplusplus */
 
-
-#endif  /* MICRORL_HDR_CONFIG_H */
+#endif  /* MICRORL_HDR_DEFAULT_CONFIG_H */
