@@ -48,7 +48,7 @@ int execute(microrl_t* pThis, int argc, const char* const *argv) {
             if (++i < argc) {
                 if (strcmp (argv[i], _LOGIN) == 0) {
                     print(pThis, "Enter your password:\r\n");
-                    microrl_set_echo(prl, ONCE);
+                    microrl_set_echo(prl, MICRORL_ECHO_ONCE);
                     pass_word = 1;
                     return 1;
                 } else {

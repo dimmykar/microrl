@@ -39,6 +39,61 @@
 #endif /* MICRORL_CFG_USE_LIBC_STDIO */
 #include "microrl.h"
 
+/**
+ * \brief           List of key codes
+ */
+#define KEY_NUL         0      /*!< ^@ Null character */
+#define KEY_SOH         1      /*!< ^A Start of heading, = console interrupt */
+#define KEY_STX         2      /*!< ^B Start of text, maintenance mode on HP console */
+#define KEY_ETX         3      /*!< ^C End of text */
+#define KEY_EOT         4      /*!< ^D End of transmission, not the same as ETB */
+#define KEY_ENQ         5      /*!< ^E Enquiry, goes with ACK; old HP flow control */
+#define KEY_ACK         6      /*!< ^F Acknowledge, clears ENQ logon hand */
+#define KEY_BEL         7      /*!< ^G Bell, rings the bell... */
+#define KEY_BS          8      /*!< ^H Backspace, works on HP terminals/computers */
+#define KEY_HT          9      /*!< ^I Horizontal tab, move to next tab stop */
+#define KEY_LF          10     /*!< ^J Line Feed */
+#define KEY_VT          11     /*!< ^K Vertical tab */
+#define KEY_FF          12     /*!< ^L Form Feed, page eject */
+#define KEY_CR          13     /*!< ^M Carriage Return*/
+#define KEY_SO          14     /*!< ^N Shift Out, alternate character set */
+#define KEY_SI          15     /*!< ^O Shift In, resume defaultn character set */
+#define KEY_DLE         16     /*!< ^P Data link escape */
+#define KEY_DC1         17     /*!< ^Q XON, with XOFF to pause listings; "okay to send". */
+#define KEY_DC2         18     /*!< ^R Device control 2, block-mode flow control */
+#define KEY_DC3         19     /*!< ^S XOFF, with XON is TERM=18 flow control */
+#define KEY_DC4         20     /*!< ^T Device control 4 */
+#define KEY_NAK         21     /*!< ^U Negative acknowledge */
+#define KEY_SYN         22     /*!< ^V Synchronous idle */
+#define KEY_ETB         23     /*!< ^W End transmission block, not the same as EOT */
+#define KEY_CAN         24     /*!< ^X Cancel line, MPE echoes !!! */
+#define KEY_EM          25     /*!< ^Y End of medium, Control-Y interrupt */
+#define KEY_SUB         26     /*!< ^Z Substitute */
+#define KEY_ESC         27     /*!< ^[ Escape, next character is not echoed */
+#define KEY_FS          28     /*!< ^\ File separator */
+#define KEY_GS          29     /*!< ^] Group separator */
+#define KEY_RS          30     /*!< ^^ Record separator, block-mode terminator */
+#define KEY_US          31     /*!< ^_ Unit separator */
+
+#define KEY_DEL         127    /*!< Delete (not a real control character...) */
+
+#define IS_CONTROL_CHAR(x)    ((x) <= 31)
+
+
+/**
+ * \brief           Direction of history navigation
+ */
+#define _HIST_UP        0
+#define _HIST_DOWN      1
+
+
+/**
+ * \brief           ESC seq internal codes
+ */
+#define _ESC_BRACKET    1
+#define _ESC_HOME       2
+#define _ESC_END        3
+
 static char* prompt_default = MICRORL_CFG_PROMPT_STRING;
 
 #if MICRORL_CFG_USE_HISTORY || __DOXYGEN__
@@ -46,9 +101,9 @@ static char* prompt_default = MICRORL_CFG_PROMPT_STRING;
 #if _HISTORY_DEBUG || __DOXYGEN__
 /**
  * \brief           Print history buffer content on screen
- * \param[in]       pThis: Pointer to \ref ring_history_t structure
+ * \param[in]       pThis: Pointer to \ref microrl_hist_rbuf_t structure
  */
-static void print_hist(ring_history_t* pThis) {
+static void print_hist(microrl_hist_rbuf_t* pThis) {
     printf("\n");
     for (int i = 0; i < MICRORL_CFG_RING_HISTORY_LEN; i++) {
         if (i == pThis->begin) {
@@ -78,9 +133,9 @@ static void print_hist(ring_history_t* pThis) {
 
 /**
  * \brief           Remove older record from ring buffer
- * \param[in,out]   pThis: Pointer to \ref ring_history_t structure
+ * \param[in,out]   pThis: Pointer to \ref microrl_hist_rbuf_t structure
  */
-static void hist_erase_older(ring_history_t* pThis) {
+static void hist_erase_older(microrl_hist_rbuf_t* pThis) {
     int new_pos = pThis->begin + pThis->ring_buf[pThis->begin] + 1;
     if (new_pos >= MICRORL_CFG_RING_HISTORY_LEN) {
         new_pos = new_pos - MICRORL_CFG_RING_HISTORY_LEN;
@@ -91,11 +146,11 @@ static void hist_erase_older(ring_history_t* pThis) {
 
 /**
  * \brief           Check space for new line, remove older while not space
- * \param[in]       pThis: Pointer to \ref ring_history_t structure
+ * \param[in]       pThis: Pointer to \ref microrl_hist_rbuf_t structure
  * \param[in]       len: 
  * \return          
  */
-static int hist_is_space_for_new(ring_history_t* pThis, int len) {
+static int hist_is_space_for_new(microrl_hist_rbuf_t* pThis, int len) {
     if (pThis->ring_buf[pThis->begin] == 0) {
         return true;
     }
@@ -113,11 +168,11 @@ static int hist_is_space_for_new(ring_history_t* pThis, int len) {
 
 /**
  * \brief           Put line to ring buffer
- * \param[in,out]   pThis: Pointer to \ref ring_history_t structure
+ * \param[in,out]   pThis: Pointer to \ref microrl_hist_rbuf_t structure
  * \param[in]       line: Record to save in history
  * \param[in]       len: Record length
  */
-static void hist_save_line(ring_history_t* pThis, char* line, int len) {
+static void hist_save_line(microrl_hist_rbuf_t* pThis, char* line, int len) {
     if (len > (MICRORL_CFG_RING_HISTORY_LEN - 2)) {
         return;
     }
@@ -154,12 +209,12 @@ static void hist_save_line(ring_history_t* pThis, char* line, int len) {
 
 /**
  * \brief           Copy saved line to 'line' and return size of line
- * \param[in]       pThis: Pointer to \ref ring_history_t structure
+ * \param[in]       pThis: Pointer to \ref microrl_hist_rbuf_t structure
  * \param[out]      line: Restored line from history
  * \param[in]       dir: Record search direction
  * \return          Size of restored line. 0 is returned, if history is empty
  */
-static int hist_restore_line(ring_history_t* pThis, char* line, int dir) {
+static int hist_restore_line(microrl_hist_rbuf_t* pThis, char* line, int dir) {
     int cnt = 0;
     // count history record
     int header = pThis->begin;
@@ -426,7 +481,7 @@ static void terminal_move_cursor(microrl_t* pThis, int offset) {
  * \param[in]       reset: 
  */
 static void terminal_print_line(microrl_t* pThis, int pos, int reset) {
-    if (!ECHO_IS_OFF()) {
+    if (pThis->echo != MICRORL_ECHO_OFF) {
         char str[MICRORL_CFG_PRINT_BUFFER_LEN];
         char* j = str;
 
@@ -464,19 +519,23 @@ static void terminal_print_line(microrl_t* pThis, int pos, int reset) {
 }
 
 /**
- * \brief           Init internal data, calls once at start up
+ * \brief           Initialize MicroRL lib data
  * \param[in,out]   pThis: \ref microrl_t working instance
  * \param[in]       print: Callback function for character output
+ * \return          \ref microrlOK on success, member of \ref microrlr_t otherwise
  */
-void microrl_init(microrl_t* pThis, print_fn print) {
+microrlr_t microrl_init(microrl_t* pThis, microrl_print_fn print) {
     memset(pThis, 0, sizeof(microrl_t));
+	
     pThis->prompt_str = prompt_default;
     pThis->print = print;
 #if MICRORL_CFG_ENABLE_INIT_PROMPT
     print_prompt(pThis);
 #endif /* MICRORL_CFG_ENABLE_INIT_PROMPT */
-    pThis->echo = ON;
+    pThis->echo = MICRORL_ECHO_ON;
     pThis->start_password = -1;
+	
+	return microrlOK;
 }
 
 #if MICRORL_CFG_USE_COMPLETE || __DOXYGEN__
@@ -485,7 +544,7 @@ void microrl_init(microrl_t* pThis, print_fn print) {
  * \param[in,out]   pThis: \ref microrl_t working instance
  * \param[in]       get_completion: Auto-complete string callback
  */
-void microrl_set_complete_callback(microrl_t* pThis, get_compl_fn get_completion) {
+void microrl_set_complete_callback(microrl_t* pThis, microrl_get_compl_fn get_completion) {
     pThis->get_completion = get_completion;
 }
 #endif /* MICRORL_CFG_USE_COMPLETE || __DOXYGEN__ */
@@ -495,7 +554,7 @@ void microrl_set_complete_callback(microrl_t* pThis, get_compl_fn get_completion
  * \param[in,out]   pThis: \ref microrl_t working instance
  * \param[in]       execute: Command execute callback
  */
-void microrl_set_execute_callback(microrl_t* pThis, exec_fn execute) {
+void microrl_set_execute_callback(microrl_t* pThis, microrl_exec_fn execute) {
     pThis->execute = execute;
 }
 
@@ -505,21 +564,21 @@ void microrl_set_execute_callback(microrl_t* pThis, exec_fn execute) {
  * \param[in,out]   pThis: \ref microrl_t working instance
  * \param[in]       sigint: Ctrl+C terminal signal callback
  */
-void microrl_set_sigint_callback(microrl_t* pThis, void (*sigint)(microrl_t*)) {
+void microrl_set_sigint_callback(microrl_t* pThis, microrl_sigint_fn sigint) {
     pThis->sigint = sigint;
 }
 #endif /* MICRORL_CFG_USE_CTRL_C || __DOXYGEN__ */
 
 /**
- * \brief           Set echo mode (ON/OFF/ONCE), using to disabe echo for password input
+ * \brief           Set echo mode used to mask user input
  *
- * Use ONCE to disable echo for password input, echo mode will enabled after user press Enter.
- * Use ON or OFF to turn on or off the echo manualy.
+ * Use \ref MICRORL_ECHO_ONCE to disable echo for password input, echo mode will enabled after user press Enter.
+ * Use \ref MICRORL_ECHO_ON or \ref MICRORL_ECHO_OFF to turn on or off the echo manualy.
  *
  * \param[in,out]   pThis: \ref microrl_t working instance
- * \param[in]       echo: Member of \ref echo_t enumeration
+ * \param[in]       echo: Member of \ref microrl_echo_t enumeration
  */
-void microrl_set_echo(microrl_t* pThis, echo_t echo) {
+void microrl_set_echo(microrl_t* pThis, microrl_echo_t echo) {
     pThis->echo = echo;
 }
 
@@ -607,7 +666,7 @@ static int escape_process(microrl_t* pThis, char ch) {
 int microrl_insert_text(microrl_t* pThis, char* text, int len) {
     int i;
     if (pThis->cmdlen + len < MICRORL_CFG_CMDLINE_LEN) {
-        if (ECHO_IS_ONCE() & (pThis->start_password == -1)) {
+        if ((pThis->echo == MICRORL_ECHO_ONCE) & (pThis->start_password == -1)) {
             pThis->start_password = pThis->cmdlen;
         }
         memmove(pThis->cmdline + pThis->cursor + len,
@@ -755,12 +814,12 @@ static void new_line_handler(microrl_t* pThis) {
 
     terminal_newline(pThis);
 #if MICRORL_CFG_USE_HISTORY
-    if ((pThis->cmdlen > 0) && (ECHO_IS_ON())) {
+    if ((pThis->cmdlen > 0) && (pThis->echo == MICRORL_ECHO_ON)) {
         hist_save_line(&pThis->ring_hist, pThis->cmdline, pThis->cmdlen);
     }
 #endif /* MICRORL_CFG_USE_HISTORY */
-    if (ECHO_IS_ONCE()) {
-        microrl_set_echo(pThis, ON);
+    if (pThis->echo == MICRORL_ECHO_ONCE) {
+        microrl_set_echo(pThis, MICRORL_ECHO_ON);
         pThis->start_password = -1;
     }
     status = split(pThis, pThis->cmdlen, tkn_arr);
@@ -913,7 +972,7 @@ void microrl_insert_char(microrl_t* pThis, int ch) {
                 if (microrl_insert_text(pThis, (char*)&ch, 1)) {
                     if (pThis->cursor == pThis->cmdlen) {
                         char nch [] = {0, 0};
-                        if ((pThis->cursor >= pThis->start_password) & (ECHO_IS_ONCE())) {
+                        if ((pThis->cursor >= pThis->start_password) & (pThis->echo == MICRORL_ECHO_ONCE)) {
                             nch[0] = '*';
                         } else {
                             nch[0] = ch;
