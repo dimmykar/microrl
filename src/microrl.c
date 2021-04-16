@@ -1,6 +1,6 @@
 /**
  * \file            microrl.c
- * \brief           MicroRL library
+ * \brief           Micro Read Line library
  */
 
 /*
@@ -41,9 +41,9 @@
 
 static char* prompt_default = MICRORL_CFG_PROMPT_STRING;
 
-#if MICRORL_CFG_USE_HISTORY
+#if MICRORL_CFG_USE_HISTORY || __DOXYGEN__
 
-#if _HISTORY_DEBUG
+#if _HISTORY_DEBUG || __DOXYGEN__
 /**
  * \brief           Print history buffer content on screen
  * \param[in]       pThis: Pointer to \ref ring_history_t structure
@@ -74,7 +74,7 @@ static void print_hist(ring_history_t* pThis) {
     }
     printf("\n");
 }
-#endif /* _HISTORY_DEBUG */
+#endif /* _HISTORY_DEBUG || __DOXYGEN__ */
 
 /**
  * \brief           Remove older record from ring buffer
@@ -226,7 +226,7 @@ static int hist_restore_line(ring_history_t* pThis, char* line, int dir) {
     }
     return -1;
 }
-#endif /* MICRORL_CFG_USE_HISTORY */
+#endif /* MICRORL_CFG_USE_HISTORY || __DOXYGEN__ */
 
 
 
@@ -235,7 +235,7 @@ static int hist_restore_line(ring_history_t* pThis, char* line, int dir) {
 
 
 
-#if MICRORL_CFG_USE_QUOTING
+#if MICRORL_CFG_USE_QUOTING || __DOXYGEN__
 /**
  * \brief           Restore end quote marks in command line
  * \param[in,out]   pThis: \ref microrl_t working instance
@@ -252,7 +252,7 @@ static void restore(microrl_t* pThis) {
         pThis->quotes[iq].end = 0;
     }
 }
-#endif /* MICRORL_CFG_USE_QUOTING */
+#endif /* MICRORL_CFG_USE_QUOTING || __DOXYGEN__ */
 
 /**
  * \brief           Split command line to tokens array
@@ -336,7 +336,6 @@ static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
     }
     return i;
 }
-
 
 /**
  * \brief           Print default prompt defined in \ref MICRORL_CFG_PROMPT_STRING config
@@ -480,7 +479,7 @@ void microrl_init(microrl_t* pThis, print_fn print) {
     pThis->start_password = -1;
 }
 
-#if MICRORL_CFG_USE_COMPLETE
+#if MICRORL_CFG_USE_COMPLETE || __DOXYGEN__
 /**
  * \brief           Set pointer to callback complition func, that called when user press 'Tab'
  * \param[in,out]   pThis: \ref microrl_t working instance
@@ -489,7 +488,7 @@ void microrl_init(microrl_t* pThis, print_fn print) {
 void microrl_set_complete_callback(microrl_t* pThis, get_compl_fn get_completion) {
     pThis->get_completion = get_completion;
 }
-#endif /* MICRORL_CFG_USE_COMPLETE */
+#endif /* MICRORL_CFG_USE_COMPLETE || __DOXYGEN__ */
 
 /**
  * \brief           Pointer to callback func, that called when user press 'Enter'
@@ -500,7 +499,7 @@ void microrl_set_execute_callback(microrl_t* pThis, exec_fn execute) {
     pThis->execute = execute;
 }
 
-#if MICRORL_CFG_USE_CTRL_C
+#if MICRORL_CFG_USE_CTRL_C || __DOXYGEN__
 /**
  * \brief           Set callback for Ctrl+C terminal signal
  * \param[in,out]   pThis: \ref microrl_t working instance
@@ -509,7 +508,7 @@ void microrl_set_execute_callback(microrl_t* pThis, exec_fn execute) {
 void microrl_set_sigint_callback(microrl_t* pThis, void (*sigint)(microrl_t*)) {
     pThis->sigint = sigint;
 }
-#endif
+#endif /* MICRORL_CFG_USE_CTRL_C || __DOXYGEN__ */
 
 /**
  * \brief           Set echo mode (ON/OFF/ONCE), using to disabe echo for password input
@@ -524,7 +523,7 @@ void microrl_set_echo(microrl_t* pThis, echo_t echo) {
     pThis->echo = echo;
 }
 
-#if MICRORL_CFG_USE_HISTORY
+#if MICRORL_CFG_USE_HISTORY || __DOXYGEN__
 /**
  * \brief           Restore record to command line from history buffer
  * \param[in,out]   pThis: \ref microrl_t working instance
@@ -538,9 +537,9 @@ static void hist_search(microrl_t* pThis, int dir) {
         terminal_print_line(pThis, 0, 1);
     }
 }
-#endif /* MICRORL_CFG_USE_HISTORY */
+#endif /* MICRORL_CFG_USE_HISTORY || __DOXYGEN__ */
 
-#if MICRORL_CFG_USE_ESC_SEQ
+#if MICRORL_CFG_USE_ESC_SEQ || __DOXYGEN__
 /**
  * \brief           Handle escape sequences
  * \param[in,out]   pThis: \ref microrl_t working instance
@@ -596,7 +595,7 @@ static int escape_process(microrl_t* pThis, char ch) {
     /* unknown escape sequence, stop */
     return 1;
 }
-#endif /* MICRORL_CFG_USE_ESC_SEQ */
+#endif /* MICRORL_CFG_USE_ESC_SEQ || __DOXYGEN__ */
 
 /**
  * \brief           Insert len char of text at cursor position
@@ -658,7 +657,7 @@ static void microrl_delete(microrl_t* pThis) {
     }
 }
 
-#if MICRORL_CFG_USE_COMPLETE
+#if MICRORL_CFG_USE_COMPLETE || __DOXYGEN__
 
 /**
  * \brief           
@@ -743,7 +742,8 @@ static void microrl_get_complite(microrl_t* pThis) {
         terminal_print_line (pThis, pos, 0);
     }
 }
-#endif /* MICRORL_CFG_USE_COMPLETE */
+
+#endif /* MICRORL_CFG_USE_COMPLETE || __DOXYGEN__ */
 
 /**
  * \brief           Processing input string and calling execute() callback

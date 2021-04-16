@@ -201,9 +201,13 @@ extern "C" {
  * \}
  */
 
+#if !__DOXYGEN__
+
 #if _RING_HISTORY_LEN > 256
 #error "This history implementation (ring buffer with 1 byte iterator) allow 256 byte buffer size maximum"
 #endif /* _RING_HISTORY_LEN > 256 */
+
+#endif /* !__DOXYGEN__ */
 
 #ifdef __cplusplus
 }

@@ -167,7 +167,7 @@ int execute(microrl_t* pThis, int argc, const char* const *argv) {
     return 0;
 }
 
-#if MICRORL_CFG_USE_COMPLETE
+#if MICRORL_CFG_USE_COMPLETE || __DOXYGEN__
 /**
  * \brief           Completion callback for MicroRL library
  * \param[in,out]   pThis: \ref microrl_t working instance
@@ -210,9 +210,9 @@ char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
     // return set of variants
     return compl_word;
 }
-#endif /* MICRORL_CFG_USE_COMPLETE */
+#endif /* MICRORL_CFG_USE_COMPLETE || __DOXYGEN__ */
 
-#if MICRORL_CFG_USE_CTRL_C
+#if MICRORL_CFG_USE_CTRL_C || __DOXYGEN__
 /**
  * \brief           Ctrl+C terminal signal function
  * \param[in]       pThis: \ref microrl_t working instance
@@ -220,4 +220,4 @@ char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
 void sigint(microrl_t* pThis) {
     print(pThis, "^C catched!\n\r");
 }
-#endif /* MICRORL_CFG_USE_CTRL_C */
+#endif /* MICRORL_CFG_USE_CTRL_C || __DOXYGEN__ */

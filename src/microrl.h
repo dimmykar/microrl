@@ -1,6 +1,6 @@
 /**
  * \file            microrl.h
- * \brief           MicroRL library
+ * \brief           Micro Read Line library
  */
 
 /*
@@ -131,7 +131,7 @@ struct ring_history;
 struct quoted_token;
 #endif /* MICRORL_CFG_USE_QUOTING */
 
-#if MICRORL_CFG_USE_HISTORY
+#if MICRORL_CFG_USE_HISTORY || __DOXYGEN__
 /**
  * \brief           History struct, contains internal variable
  *
@@ -144,10 +144,10 @@ typedef struct ring_history {
     int end;
     int cur;
 } ring_history_t;
-#endif /* MICRORL_CFG_USE_HISTORY */
+#endif /* MICRORL_CFG_USE_HISTORY || __DOXYGEN__ */
 
 
-#if MICRORL_CFG_USE_QUOTING
+#if MICRORL_CFG_USE_QUOTING || __DOXYGEN__
 /**
  * \brief           Quoted token struct, points to begin and end marks
  */
@@ -155,7 +155,7 @@ typedef struct quoted_token {
     char* begin;
     char* end;
 } quoted_token_t;
-#endif /* MICRORL_CFG_USE_QUOTING */
+#endif /* MICRORL_CFG_USE_QUOTING || __DOXYGEN__ */
 
 /**
  * \brief           Command execute function prototype
