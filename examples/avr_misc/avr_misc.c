@@ -73,10 +73,10 @@ void init(void) {
 
 /**
  * \brief           Print to IO stream callback for MicroRL library
- * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       mrl: \ref microrl_t working instance
  * \param[in]       str: Output string
  */
-void print(microrl_t* pThis, const char* str) {
+void print(microrl_t* mrl, const char* str) {
     int i = 0;
     while (str[i] != 0) {
         while (!(UCSRA & (1 << UDRE)));
@@ -95,30 +95,30 @@ char get_char(void) {
 
 /**
  * \brief           HELP command callback
- * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       mrl: \ref microrl_t working instance
  */
-void print_help(microrl_t* pThis) {
-    print(pThis, "Use TAB key for completion\n\rCommand:\n\r");
-    print(pThis, "\tclear               - clear screen\n\r");
-    print(pThis, "\tset_port port pin   - set 1 port[pin] value, support only 'port_b' and 'port_d'\n\r");
-    print(pThis, "\tclear_port port pin - set 0 port[pin] value, support only 'port_b' and 'port_d'\n\r");
+void print_help(microrl_t* mrl) {
+    print(mrl, "Use TAB key for completion\n\rCommand:\n\r");
+    print(mrl, "\tclear               - clear screen\n\r");
+    print(mrl, "\tset_port port pin   - set 1 port[pin] value, support only 'port_b' and 'port_d'\n\r");
+    print(mrl, "\tclear_port port pin - set 0 port[pin] value, support only 'port_b' and 'port_d'\n\r");
 }
 
 /**
  * \brief           SET PIN VALUE OF PORT command callback
- * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       mrl: \ref microrl_t working instance
  * \param[in]       port: MCU GPIO port
  * \param[in]       pin: MCU GPIO pin
  * \param[in]       val: '0' to pulldown pin, '1' to pullup pin
  */
-void set_port_val(microrl_t* pThis, unsigned char* port, int pin, int val) {
+void set_port_val(microrl_t* mrl, unsigned char* port, int pin, int val) {
     if ((*port == PORTD) && (pin < 2) && (pin > 7)) {
-        print(pThis, "only 2..7 pin avialable for PORTD\n\r");
+        print(mrl, "only 2..7 pin avialable for PORTD\n\r");
         return;
     }
   
     if ((*port == PORTB) && (pin > 5)) {
-        print(pThis, "only 0..5 pin avialable for PORTB\n\r");
+        print(mrl, "only 0..5 pin avialable for PORTB\n\r");
         return;
     }
 
@@ -134,25 +134,25 @@ void set_port_val(microrl_t* pThis, unsigned char* port, int pin, int val) {
  *
  * Do what you want here, but don't write to argv!!! read only!!
  *
- * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       mrl: \ref microrl_t working instance
  * \param[in]       argc: argument count
  * \param[in]       argv: pointer array to token string
  * \return          
  */
-int execute(microrl_t* pThis, int argc, const char* const *argv) {
+int execute(microrl_t* mrl, int argc, const char* const *argv) {
     int i = 0;
     // just iterate through argv word and compare it with your commands
     while (i < argc) {
         if (strcmp(argv[i], _CMD_HELP) == 0) {
-            print(pThis, "microrl v");
-            print(pThis, MICRORL_LIB_VER);
-            print(pThis, " library AVR DEMO v");
-            print(pThis, _AVR_DEMO_VER);
-            print(pThis, "\n\r");
-            print_help(pThis);        // print help
+            print(mrl, "microrl v");
+            print(mrl, MICRORL_LIB_VER);
+            print(mrl, " library AVR DEMO v");
+            print(mrl, _AVR_DEMO_VER);
+            print(mrl, "\n\r");
+            print_help(mrl);        // print help
         } else if (strcmp(argv[i], _CMD_CLEAR) == 0) {
-            print(pThis, "\033[2J");    // ESC seq for clear entire screen
-            print(pThis, "\033[H");     // ESC seq for move cursor at left-top corner
+            print(mrl, "\033[2J");    // ESC seq for clear entire screen
+            print(mrl, "\033[H");     // ESC seq for move cursor at left-top corner
         } else if ((strcmp(argv[i], _CMD_SET) == 0) || 
                    (strcmp(argv[i], _CMD_CLR) == 0)) {
             if (++i < argc) {
@@ -164,11 +164,11 @@ int execute(microrl_t* pThis, int argc, const char* const *argv) {
             } else if (strcmp(argv[i], _SCMD_PB) == 0) {
                 port = (unsigned char*)&PORTB;
             } else {
-                print(pThis, "only '");
-                print(pThis, _SCMD_PB);
-                print(pThis, "' and '");
-                print(pThis, _SCMD_PD);
-                print(pThis, "' support\n\r");
+                print(mrl, "only '");
+                print(mrl, _SCMD_PB);
+                print(mrl, "' and '");
+                print(mrl, _SCMD_PD);
+                print(mrl, "' support\n\r");
                 return 1;
             }
             if (++i < argc) {
@@ -176,13 +176,13 @@ int execute(microrl_t* pThis, int argc, const char* const *argv) {
                 set_port_val(port, pin, val);
                 return 0;
             } else {
-                print(pThis, "specify pin number, use Tab\n\r");
+                print(mrl, "specify pin number, use Tab\n\r");
                 return 1;
             }
         } else {
-            print(pThis, "command: '");
-            print(pThis, (char*)argv[i]);
-            print(pThis, "' Not found.\n\r");
+            print(mrl, "command: '");
+            print(mrl, (char*)argv[i]);
+            print(mrl, "' Not found.\n\r");
         }
         i++;
     }
@@ -192,12 +192,13 @@ int execute(microrl_t* pThis, int argc, const char* const *argv) {
 #if MICRORL_CFG_USE_COMPLETE || __DOXYGEN__
 /**
  * \brief           Completion callback for MicroRL library
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       argc: argument count
  * \param[in]       argv: pointer array to token string
  * \return          NULL-terminated string, contain complite variant split by 'Whitespace'
  */
-char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
+char ** complet(microrl_t* mrl, int argc, const char* const *argv) {
+    (void)mrl;
     int j = 0;
 
     compl_word[0] = NULL;
@@ -238,9 +239,9 @@ char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
 #if MICRORL_CFG_USE_CTRL_C || __DOXYGEN__
 /**
  * \brief           Ctrl+C terminal signal function
- * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       mrl: \ref microrl_t working instance
  */
-void sigint(microrl_t* pThis) {
-    print(pThis, "^C catched!\n\r");
+void sigint(microrl_t* mrl) {
+    print(mrl, "^C catched!\n\r");
 }
 #endif /* MICRORL_CFG_USE_CTRL_C || __DOXYGEN__ */

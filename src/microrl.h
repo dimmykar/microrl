@@ -56,7 +56,7 @@ extern "C" {
  */
 typedef enum {
     microrlOK = 0x00,                           /*!< Everything OK */
-	microrlERR,
+    microrlERR,
     microrlERRPAR,                              /*!< Parameter error */
     microrlERRMEM,                              /*!< Memory error */
 } microrlr_t;
@@ -107,36 +107,36 @@ typedef struct microrl_quoted_tkn {
 
 /**
  * \brief           Command execute function prototype
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       argc: argument count
  * \param[in]       argv: pointer array to token string
  * \return          
  */
-typedef int       (*microrl_exec_fn)(struct microrl* pThis, int argc, const char* const *argv);
+typedef int       (*microrl_exec_fn)(struct microrl* mrl, int argc, const char* const *argv);
 
 /**
  * \brief           Auto-complete function prototype
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       argc: argument count
  * \param[in]       argv: pointer array to token string
  * \return          NULL-terminated string, contain complite variant split by 'Whitespace'
  *                  If complite token found, it's must contain only one token to be complitted
  *                  Empty string if complite not found, and multiple string if there are some token
  */
-typedef char **   (*microrl_get_compl_fn)(struct microrl* pThis, int argc, const char* const *argv);
+typedef char **   (*microrl_get_compl_fn)(struct microrl* mrl, int argc, const char* const *argv);
 
 /**
  * \brief           Character output function prototype
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       ch: Character to print
  */
-typedef void      (*microrl_print_fn)(struct microrl* pThis, const char* ch);
+typedef void      (*microrl_print_fn)(struct microrl* mrl, const char* ch);
 
 /**
  * \brief           Ctrl+C terminal signal function prototype
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  */
-typedef void      (*microrl_sigint_fn)(struct microrl* pThis);
+typedef void      (*microrl_sigint_fn)(struct microrl* mrl);
 
 /**
  * \brief           MicroRL struct, contains internal library data
@@ -170,20 +170,20 @@ typedef struct microrl {
     void* userdata;                             /*!< generic user data storage */
 } microrl_t;
 
-microrlr_t  microrl_init(microrl_t* pThis, microrl_print_fn print);
+microrlr_t  microrl_init(microrl_t* mrl, microrl_print_fn print);
 
 #if MICRORL_CFG_USE_COMPLETE
-void        microrl_set_complete_callback(microrl_t* pThis, microrl_get_compl_fn get_completion);
+void        microrl_set_complete_callback(microrl_t* mrl, microrl_get_compl_fn get_completion);
 #endif /* MICRORL_CFG_USE_COMPLETE */
-void        microrl_set_execute_callback(microrl_t* pThis, microrl_exec_fn execute);
+void        microrl_set_execute_callback(microrl_t* mrl, microrl_exec_fn execute);
 #if MICRORL_CFG_USE_CTRL_C
-void        microrl_set_sigint_callback(microrl_t* pThis, microrl_sigint_fn sigint);
+void        microrl_set_sigint_callback(microrl_t* mrl, microrl_sigint_fn sigint);
 #endif /* MICRORL_CFG_USE_CTRL_C */
 
-void        microrl_set_echo(microrl_t* pThis, microrl_echo_t echo);
+void        microrl_set_echo(microrl_t* mrl, microrl_echo_t echo);
 
-void        microrl_insert_char(microrl_t* pThis, int ch);
-int         microrl_insert_text(microrl_t* pThis, char* text, int len);
+void        microrl_insert_char(microrl_t* mrl, int ch);
+int         microrl_insert_text(microrl_t* mrl, char* text, int len);
 
 /**
  * \}

@@ -101,12 +101,12 @@ static char* prompt_default = MICRORL_CFG_PROMPT_STRING;
 #if _HISTORY_DEBUG || __DOXYGEN__
 /**
  * \brief           Print history buffer content on screen
- * \param[in]       pThis: Pointer to \ref microrl_hist_rbuf_t structure
+ * \param[in]       prbuf: Pointer to \ref microrl_hist_rbuf_t structure
  */
-static void print_hist(microrl_hist_rbuf_t* pThis) {
+static void print_hist(microrl_hist_rbuf_t* prbuf) {
     printf("\n");
     for (int i = 0; i < MICRORL_CFG_RING_HISTORY_LEN; i++) {
-        if (i == pThis->begin) {
+        if (i == prbuf->begin) {
             printf("b");
         } else {
             printf(" ");
@@ -114,14 +114,14 @@ static void print_hist(microrl_hist_rbuf_t* pThis) {
     }
     printf("\n");
     for (int i = 0; i < MICRORL_CFG_RING_HISTORY_LEN; i++) {
-        if (isalpha(pThis->ring_buf[i])) {
-            printf("%c", pThis->ring_buf[i]);
+        if (isalpha(prbuf->ring_buf[i])) {
+            printf("%c", prbuf->ring_buf[i]);
         } else {
-            printf("%d", pThis->ring_buf[i]);
+            printf("%d", prbuf->ring_buf[i]);
     }
     printf("\n");
     for (int i = 0; i < MICRORL_CFG_RING_HISTORY_LEN; i++) {
-        if (i == pThis->end) {
+        if (i == prbuf->end) {
             printf("e");
         } else {
             printf(" ");
@@ -133,33 +133,33 @@ static void print_hist(microrl_hist_rbuf_t* pThis) {
 
 /**
  * \brief           Remove older record from ring buffer
- * \param[in,out]   pThis: Pointer to \ref microrl_hist_rbuf_t structure
+ * \param[in,out]   prbuf: Pointer to \ref microrl_hist_rbuf_t structure
  */
-static void hist_erase_older(microrl_hist_rbuf_t* pThis) {
-    int new_pos = pThis->begin + pThis->ring_buf[pThis->begin] + 1;
+static void hist_erase_older(microrl_hist_rbuf_t* prbuf) {
+    int new_pos = prbuf->begin + prbuf->ring_buf[prbuf->begin] + 1;
     if (new_pos >= MICRORL_CFG_RING_HISTORY_LEN) {
         new_pos = new_pos - MICRORL_CFG_RING_HISTORY_LEN;
     }
 
-    pThis->begin = new_pos;
+    prbuf->begin = new_pos;
 }
 
 /**
  * \brief           Check space for new line, remove older while not space
- * \param[in]       pThis: Pointer to \ref microrl_hist_rbuf_t structure
+ * \param[in]       prbuf: Pointer to \ref microrl_hist_rbuf_t structure
  * \param[in]       len: 
  * \return          
  */
-static int hist_is_space_for_new(microrl_hist_rbuf_t* pThis, int len) {
-    if (pThis->ring_buf[pThis->begin] == 0) {
+static int hist_is_space_for_new(microrl_hist_rbuf_t* prbuf, int len) {
+    if (prbuf->ring_buf[prbuf->begin] == 0) {
         return true;
     }
-    if (pThis->end >= pThis->begin) {
-        if ((MICRORL_CFG_RING_HISTORY_LEN - pThis->end + pThis->begin - 1) > len) {
+    if (prbuf->end >= prbuf->begin) {
+        if ((MICRORL_CFG_RING_HISTORY_LEN - prbuf->end + prbuf->begin - 1) > len) {
             return true;
         }
     } else {
-        if ((pThis->begin - pThis->end - 1) > len) {
+        if ((prbuf->begin - prbuf->end - 1) > len) {
             return true;
         }
     }
@@ -168,58 +168,58 @@ static int hist_is_space_for_new(microrl_hist_rbuf_t* pThis, int len) {
 
 /**
  * \brief           Put line to ring buffer
- * \param[in,out]   pThis: Pointer to \ref microrl_hist_rbuf_t structure
+ * \param[in,out]   prbuf: Pointer to \ref microrl_hist_rbuf_t structure
  * \param[in]       line: Record to save in history
  * \param[in]       len: Record length
  */
-static void hist_save_line(microrl_hist_rbuf_t* pThis, char* line, int len) {
+static void hist_save_line(microrl_hist_rbuf_t* prbuf, char* line, int len) {
     if (len > (MICRORL_CFG_RING_HISTORY_LEN - 2)) {
         return;
     }
 
-    while (!hist_is_space_for_new(pThis, len)) {
-        hist_erase_older(pThis);
+    while (!hist_is_space_for_new(prbuf, len)) {
+        hist_erase_older(prbuf);
     }
 
     // if it's first line
-    if (pThis->ring_buf[pThis->begin] == 0) {
-        pThis->ring_buf[pThis->begin] = len;
+    if (prbuf->ring_buf[prbuf->begin] == 0) {
+        prbuf->ring_buf[prbuf->begin] = len;
     }
 
     // store line
-    if (len < (MICRORL_CFG_RING_HISTORY_LEN - pThis->end - 1)) {
-        memcpy(pThis->ring_buf + pThis->end + 1, line, len);
+    if (len < (MICRORL_CFG_RING_HISTORY_LEN - prbuf->end - 1)) {
+        memcpy(prbuf->ring_buf + prbuf->end + 1, line, len);
     } else {
-        int part_len = MICRORL_CFG_RING_HISTORY_LEN - pThis->end - 1;
-        memcpy(pThis->ring_buf + pThis->end + 1, line, part_len);
-        memcpy(pThis->ring_buf, line + part_len, len - part_len);
+        int part_len = MICRORL_CFG_RING_HISTORY_LEN - prbuf->end - 1;
+        memcpy(prbuf->ring_buf + prbuf->end + 1, line, part_len);
+        memcpy(prbuf->ring_buf, line + part_len, len - part_len);
     }
 
-    pThis->ring_buf[pThis->end] = len;
-    pThis->end = pThis->end + len + 1;
-    if (pThis->end >= MICRORL_CFG_RING_HISTORY_LEN) {
-        pThis->end -= MICRORL_CFG_RING_HISTORY_LEN;
+    prbuf->ring_buf[prbuf->end] = len;
+    prbuf->end = prbuf->end + len + 1;
+    if (prbuf->end >= MICRORL_CFG_RING_HISTORY_LEN) {
+        prbuf->end -= MICRORL_CFG_RING_HISTORY_LEN;
     }
-    pThis->ring_buf[pThis->end] = 0;
-    pThis->cur = 0;
+    prbuf->ring_buf[prbuf->end] = 0;
+    prbuf->cur = 0;
 #if _HISTORY_DEBUG
-    print_hist(pThis);
+    print_hist(prbuf);
 #endif /* _HISTORY_DEBUG */
 }
 
 /**
  * \brief           Copy saved line to 'line' and return size of line
- * \param[in]       pThis: Pointer to \ref microrl_hist_rbuf_t structure
+ * \param[in]       prbuf: Pointer to \ref microrl_hist_rbuf_t structure
  * \param[out]      line: Restored line from history
  * \param[in]       dir: Record search direction
  * \return          Size of restored line. 0 is returned, if history is empty
  */
-static int hist_restore_line(microrl_hist_rbuf_t* pThis, char* line, int dir) {
+static int hist_restore_line(microrl_hist_rbuf_t* prbuf, char* line, int dir) {
     int cnt = 0;
     // count history record
-    int header = pThis->begin;
-    while (pThis->ring_buf[header] != 0) {
-        header += pThis->ring_buf[header] + 1;
+    int header = prbuf->begin;
+    while (prbuf->ring_buf[header] != 0) {
+        header += prbuf->ring_buf[header] + 1;
         if (header >= MICRORL_CFG_RING_HISTORY_LEN) {
             header -= MICRORL_CFG_RING_HISTORY_LEN;
         }
@@ -227,53 +227,53 @@ static int hist_restore_line(microrl_hist_rbuf_t* pThis, char* line, int dir) {
     }
 
     if (dir == _HIST_UP) {
-        if (cnt >= pThis->cur) {
-            int header = pThis->begin;
+        if (cnt >= prbuf->cur) {
+            int header = prbuf->begin;
             int j = 0;
-            // found record for 'pThis->cur' index
-            while ((pThis->ring_buf[header] != 0) && ((cnt - j - 1) != pThis->cur)) {
-                header += pThis->ring_buf[header] + 1;
+            // found record for 'prbuf->cur' index
+            while ((prbuf->ring_buf[header] != 0) && ((cnt - j - 1) != prbuf->cur)) {
+                header += prbuf->ring_buf[header] + 1;
                 if (header >= MICRORL_CFG_RING_HISTORY_LEN) {
                     header -= MICRORL_CFG_RING_HISTORY_LEN;
                 }
                 j++;
             }
-            if (pThis->ring_buf[header]) {
-                pThis->cur++;
+            if (prbuf->ring_buf[header]) {
+                prbuf->cur++;
                 // obtain saved line
-                if ((pThis->ring_buf[header] + header) < MICRORL_CFG_RING_HISTORY_LEN) {
+                if ((prbuf->ring_buf[header] + header) < MICRORL_CFG_RING_HISTORY_LEN) {
                     memset(line, 0, MICRORL_CFG_CMDLINE_LEN);
-                    memcpy(line, pThis->ring_buf + header + 1, pThis->ring_buf[header]);
+                    memcpy(line, prbuf->ring_buf + header + 1, prbuf->ring_buf[header]);
                 } else {
                     int part0 = MICRORL_CFG_RING_HISTORY_LEN - header - 1;
                     memset(line, 0, MICRORL_CFG_CMDLINE_LEN);
-                    memcpy(line, pThis->ring_buf + header + 1, part0);
-                    memcpy(line + part0, pThis->ring_buf, pThis->ring_buf[header] - part0);
+                    memcpy(line, prbuf->ring_buf + header + 1, part0);
+                    memcpy(line + part0, prbuf->ring_buf, prbuf->ring_buf[header] - part0);
                 }
-                return pThis->ring_buf[header];
+                return prbuf->ring_buf[header];
             }
         }
     } else {
-        if (pThis->cur > 0) {
-            pThis->cur--;
-            int header = pThis->begin;
+        if (prbuf->cur > 0) {
+            prbuf->cur--;
+            int header = prbuf->begin;
             int j = 0;
 
-            while ((pThis->ring_buf[header] != 0) && ((cnt - j) != pThis->cur)) {
-                header += pThis->ring_buf[header] + 1;
+            while ((prbuf->ring_buf[header] != 0) && ((cnt - j) != prbuf->cur)) {
+                header += prbuf->ring_buf[header] + 1;
                 if (header >= MICRORL_CFG_RING_HISTORY_LEN) {
                     header -= MICRORL_CFG_RING_HISTORY_LEN;
                 }
                 j++;
             }
-            if ((pThis->ring_buf[header] + header) < MICRORL_CFG_RING_HISTORY_LEN) {
-                memcpy(line, pThis->ring_buf + header + 1, pThis->ring_buf[header]);
+            if ((prbuf->ring_buf[header] + header) < MICRORL_CFG_RING_HISTORY_LEN) {
+                memcpy(line, prbuf->ring_buf + header + 1, prbuf->ring_buf[header]);
             } else {
                 int part0 = MICRORL_CFG_RING_HISTORY_LEN - header - 1;
-                memcpy(line, pThis->ring_buf + header + 1, part0);
-                memcpy(line + part0, pThis->ring_buf, pThis->ring_buf[header] - part0);
+                memcpy(line, prbuf->ring_buf + header + 1, part0);
+                memcpy(line + part0, prbuf->ring_buf, prbuf->ring_buf[header] - part0);
             }
-            return pThis->ring_buf[header];
+            return prbuf->ring_buf[header];
         } else {
             /* empty line */
             return 0;
@@ -293,44 +293,44 @@ static int hist_restore_line(microrl_hist_rbuf_t* pThis, char* line, int dir) {
 #if MICRORL_CFG_USE_QUOTING || __DOXYGEN__
 /**
  * \brief           Restore end quote marks in command line
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  */
-static void restore(microrl_t* pThis) {
+static void restore(microrl_t* mrl) {
     int iq;
     for (iq = 0; iq < MICRORL_CFG_QUOTED_TOKEN_NMB; ++iq) {
-        if (pThis->quotes[iq].end == 0) {
+        if (mrl->quotes[iq].end == 0) {
             break;
         }
 
-        *pThis->quotes[iq].end = *pThis->quotes[iq].begin;
-        pThis->quotes[iq].begin = 0;
-        pThis->quotes[iq].end = 0;
+        *mrl->quotes[iq].end = *mrl->quotes[iq].begin;
+        mrl->quotes[iq].begin = 0;
+        mrl->quotes[iq].end = 0;
     }
 }
 #endif /* MICRORL_CFG_USE_QUOTING || __DOXYGEN__ */
 
 /**
  * \brief           Split command line to tokens array
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       limit: 
  * \param[in]       tkn_arr: 
  * \return          Number of split tokens
  */
-static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
+static int split(microrl_t* mrl, int limit, const char** tkn_arr) {
     int i = 0;
     int ind = 0;
 #if MICRORL_CFG_USE_QUOTING
     int iq = 0;
     char quote = 0;
     for (iq = 0; iq < MICRORL_CFG_QUOTED_TOKEN_NMB; ++iq) {
-        pThis->quotes[iq].begin = 0;
-        pThis->quotes[iq].end = 0;
+        mrl->quotes[iq].begin = 0;
+        mrl->quotes[iq].end = 0;
     }
     iq = 0;
 #endif /* MICRORL_CFG_USE_QUOTING */
     while (1) {
         // go to the first NOT whitespace (not zero for us)
-        while ((pThis->cmdline[ind] == '\0') && (ind < limit)) {
+        while ((mrl->cmdline[ind] == '\0') && (ind < limit)) {
             ind++;
         }
 
@@ -339,41 +339,41 @@ static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
         }
 
 #if MICRORL_CFG_USE_QUOTING
-        if (pThis->cmdline[ind] == '\'' || pThis->cmdline[ind] == '"') {
+        if (mrl->cmdline[ind] == '\'' || mrl->cmdline[ind] == '"') {
             if (iq >= MICRORL_CFG_QUOTED_TOKEN_NMB) {
-                restore (pThis);
+                restore (mrl);
                 return -1;
             }
-            quote = pThis->cmdline[ind];
-            pThis->quotes[iq].begin = pThis->cmdline + ind;
+            quote = mrl->cmdline[ind];
+            mrl->quotes[iq].begin = mrl->cmdline + ind;
             ind++;
         }
 #endif /* MICRORL_CFG_USE_QUOTING */
-        tkn_arr[i++] = pThis->cmdline + ind;
+        tkn_arr[i++] = mrl->cmdline + ind;
         if (i >= MICRORL_CFG_CMD_TOKEN_NMB) {
 #if MICRORL_CFG_USE_QUOTING
-            restore(pThis);
+            restore(mrl);
 #endif /* MICRORL_CFG_USE_QUOTING */
             return -1;
         }
         // go to the first whitespace (zero for us)
         while (ind < limit) {
-            if (pThis->cmdline[ind] == '\0') {
+            if (mrl->cmdline[ind] == '\0') {
 #if MICRORL_CFG_USE_QUOTING
                 if (!quote) {
 #endif /* MICRORL_CFG_USE_QUOTING */
                     break;
 #if MICRORL_CFG_USE_QUOTING
                 }
-                pThis->cmdline[ind] = ' ';
-            } else if (pThis->cmdline[ind] == quote) {
-                if (pThis->cmdline[ind + 1] != '\0') {
-                    restore(pThis);
+                mrl->cmdline[ind] = ' ';
+            } else if (mrl->cmdline[ind] == quote) {
+                if (mrl->cmdline[ind + 1] != '\0') {
+                    restore(mrl);
                     return -1;
                 }
                 quote = 0;
-                pThis->quotes[iq++].end = pThis->cmdline + ind;
-                pThis->cmdline[ind++] = '\0';
+                mrl->quotes[iq++].end = mrl->cmdline + ind;
+                mrl->cmdline[ind++] = '\0';
                 break;
 #endif /* MICRORL_CFG_USE_QUOTING */
             }
@@ -382,7 +382,7 @@ static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
         if (!(ind < limit)) {
 #if MICRORL_CFG_USE_QUOTING
             if (quote) {
-                restore(pThis);
+                restore(mrl);
                 return -1;
             }
 #endif /* MICRORL_CFG_USE_QUOTING */
@@ -394,27 +394,27 @@ static int split(microrl_t* pThis, int limit, const char** tkn_arr) {
 
 /**
  * \brief           Print default prompt defined in \ref MICRORL_CFG_PROMPT_STRING config
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  */
-inline static void print_prompt(microrl_t* pThis) {
-    pThis->print(pThis, pThis->prompt_str);
+inline static void print_prompt(microrl_t* mrl) {
+    mrl->print(mrl, mrl->prompt_str);
 }
 
 /**
  * \brief           Clear last symbol in command line and move cursor
  *                  to its position
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  */
-inline static void terminal_backspace(microrl_t* pThis) {
-    pThis->print(pThis, "\033[D \033[D");
+inline static void terminal_backspace(microrl_t* mrl) {
+    mrl->print(mrl, "\033[D \033[D");
 }
 
 /**
  * \brief           Print end line symbol defined in \ref MICRORL_CFG_END_LINE config
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  */
-inline static void terminal_newline(microrl_t* pThis) {
-    pThis->print(pThis, MICRORL_CFG_END_LINE);
+inline static void terminal_newline(microrl_t* mrl) {
+    mrl->print(mrl, MICRORL_CFG_END_LINE);
 }
 
 /**
@@ -463,25 +463,25 @@ static char * generate_move_cursor(char* str, int offset) {
 /**
  * \brief           Set cursor at current position + offset (positive or negative)
  *                  in terminal's command line
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       offset: Positive or negative interval to move cursor
  */
-static void terminal_move_cursor(microrl_t* pThis, int offset) {
+static void terminal_move_cursor(microrl_t* mrl, int offset) {
     char str[16] = {0,};
     if (offset != 0) {
         generate_move_cursor(str, offset);
-        pThis->print(pThis, str);
+        mrl->print(mrl, str);
     }
 }
 
 /**
  * \brief           Print command line to screen, replace '\0' to wihitespace
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       pos: 
  * \param[in]       reset: 
  */
-static void terminal_print_line(microrl_t* pThis, int pos, int reset) {
-    if (pThis->echo != MICRORL_ECHO_OFF) {
+static void terminal_print_line(microrl_t* mrl, int pos, int reset) {
+    if (mrl->echo != MICRORL_ECHO_OFF) {
         char str[MICRORL_CFG_PRINT_BUFFER_LEN];
         char* j = str;
 
@@ -495,45 +495,45 @@ static void terminal_print_line(microrl_t* pThis, int pos, int reset) {
 #endif /* MICRORL_CFG_USE_CARRIAGE_RETURN */
         }
 
-        for (int i = pos; i < pThis->cmdlen; i++) {
-            *j++ = (pThis->cmdline[i] == '\0') ? ' ' : pThis->cmdline[i];
+        for (int i = pos; i < mrl->cmdlen; i++) {
+            *j++ = (mrl->cmdline[i] == '\0') ? ' ' : mrl->cmdline[i];
             if ((j - str) == (sizeof(str) - 1)) {
                 *j = '\0';
-                pThis->print(pThis, str);
+                mrl->print(mrl, str);
                 j = str;
             }
         }
 
         if ((j - str + 3 + 6 + 1) > MICRORL_CFG_PRINT_BUFFER_LEN) {
             *j = '\0';
-            pThis->print(pThis, str);
+            mrl->print(mrl, str);
             j = str;
         }
 
         *j++ = '\033';   // delete all past end of text
         *j++ = '[';
         *j++ = 'K';
-        generate_move_cursor(j, pThis->cursor - pThis->cmdlen);
-        pThis->print(pThis, str);
+        generate_move_cursor(j, mrl->cursor - mrl->cmdlen);
+        mrl->print(mrl, str);
     }
 }
 
 /**
  * \brief           Initialize MicroRL lib data
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       print: Callback function for character output
  * \return          \ref microrlOK on success, member of \ref microrlr_t otherwise
  */
-microrlr_t microrl_init(microrl_t* pThis, microrl_print_fn print) {
-    memset(pThis, 0, sizeof(microrl_t));
+microrlr_t microrl_init(microrl_t* mrl, microrl_print_fn print) {
+    memset(mrl, 0, sizeof(microrl_t));
 	
-    pThis->prompt_str = prompt_default;
-    pThis->print = print;
+    mrl->prompt_str = prompt_default;
+    mrl->print = print;
 #if MICRORL_CFG_ENABLE_INIT_PROMPT
-    print_prompt(pThis);
+    print_prompt(mrl);
 #endif /* MICRORL_CFG_ENABLE_INIT_PROMPT */
-    pThis->echo = MICRORL_ECHO_ON;
-    pThis->start_password = -1;
+    mrl->echo = MICRORL_ECHO_ON;
+    mrl->start_password = -1;
 	
 	return microrlOK;
 }
@@ -541,31 +541,31 @@ microrlr_t microrl_init(microrl_t* pThis, microrl_print_fn print) {
 #if MICRORL_CFG_USE_COMPLETE || __DOXYGEN__
 /**
  * \brief           Set pointer to callback complition func, that called when user press 'Tab'
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       get_completion: Auto-complete string callback
  */
-void microrl_set_complete_callback(microrl_t* pThis, microrl_get_compl_fn get_completion) {
-    pThis->get_completion = get_completion;
+void microrl_set_complete_callback(microrl_t* mrl, microrl_get_compl_fn get_completion) {
+    mrl->get_completion = get_completion;
 }
 #endif /* MICRORL_CFG_USE_COMPLETE || __DOXYGEN__ */
 
 /**
  * \brief           Pointer to callback func, that called when user press 'Enter'
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       execute: Command execute callback
  */
-void microrl_set_execute_callback(microrl_t* pThis, microrl_exec_fn execute) {
-    pThis->execute = execute;
+void microrl_set_execute_callback(microrl_t* mrl, microrl_exec_fn execute) {
+    mrl->execute = execute;
 }
 
 #if MICRORL_CFG_USE_CTRL_C || __DOXYGEN__
 /**
  * \brief           Set callback for Ctrl+C terminal signal
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       sigint: Ctrl+C terminal signal callback
  */
-void microrl_set_sigint_callback(microrl_t* pThis, microrl_sigint_fn sigint) {
-    pThis->sigint = sigint;
+void microrl_set_sigint_callback(microrl_t* mrl, microrl_sigint_fn sigint) {
+    mrl->sigint = sigint;
 }
 #endif /* MICRORL_CFG_USE_CTRL_C || __DOXYGEN__ */
 
@@ -575,25 +575,25 @@ void microrl_set_sigint_callback(microrl_t* pThis, microrl_sigint_fn sigint) {
  * Use \ref MICRORL_ECHO_ONCE to disable echo for password input, echo mode will enabled after user press Enter.
  * Use \ref MICRORL_ECHO_ON or \ref MICRORL_ECHO_OFF to turn on or off the echo manualy.
  *
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       echo: Member of \ref microrl_echo_t enumeration
  */
-void microrl_set_echo(microrl_t* pThis, microrl_echo_t echo) {
-    pThis->echo = echo;
+void microrl_set_echo(microrl_t* mrl, microrl_echo_t echo) {
+    mrl->echo = echo;
 }
 
 #if MICRORL_CFG_USE_HISTORY || __DOXYGEN__
 /**
  * \brief           Restore record to command line from history buffer
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       dir: Search direction in history ring buffer
  */
-static void hist_search(microrl_t* pThis, int dir) {
-    int len = hist_restore_line(&pThis->ring_hist, pThis->cmdline, dir);
+static void hist_search(microrl_t* mrl, int dir) {
+    int len = hist_restore_line(&mrl->ring_hist, mrl->cmdline, dir);
     if (len >= 0) {
-        pThis->cmdline[len] = '\0';
-        pThis->cursor = pThis->cmdlen = len;
-        terminal_print_line(pThis, 0, 1);
+        mrl->cmdline[len] = '\0';
+        mrl->cursor = mrl->cmdlen = len;
+        terminal_print_line(mrl, 0, 1);
     }
 }
 #endif /* MICRORL_CFG_USE_HISTORY || __DOXYGEN__ */
@@ -601,52 +601,52 @@ static void hist_search(microrl_t* pThis, int dir) {
 #if MICRORL_CFG_USE_ESC_SEQ || __DOXYGEN__
 /**
  * \brief           Handle escape sequences
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       ch: Input character
  * \return          '1' if escape sequence processed, '0' otherwise
  */
-static int escape_process(microrl_t* pThis, char ch) {
+static int escape_process(microrl_t* mrl, char ch) {
     if (ch == '[') {
-        pThis->escape_seq = _ESC_BRACKET;
+        mrl->escape_seq = _ESC_BRACKET;
         return 0;
-    } else if (pThis->escape_seq == _ESC_BRACKET) {
+    } else if (mrl->escape_seq == _ESC_BRACKET) {
         if (ch == 'A') {
 #if MICRORL_CFG_USE_HISTORY
-            hist_search(pThis, _HIST_UP);
+            hist_search(mrl, _HIST_UP);
 #endif /* MICRORL_CFG_USE_HISTORY */
             return 1;
         } else if (ch == 'B') {
 #if MICRORL_CFG_USE_HISTORY
-            hist_search(pThis, _HIST_DOWN);
+            hist_search(mrl, _HIST_DOWN);
 #endif /* MICRORL_CFG_USE_HISTORY */
             return 1;
         } else if (ch == 'C') {
-            if (pThis->cursor < pThis->cmdlen) {
-                terminal_move_cursor(pThis, 1);
-                pThis->cursor++;
+            if (mrl->cursor < mrl->cmdlen) {
+                terminal_move_cursor(mrl, 1);
+                mrl->cursor++;
             }
             return 1;
         } else if (ch == 'D') {
-            if (pThis->cursor > 0) {
-                terminal_move_cursor(pThis, -1);
-                pThis->cursor--;
+            if (mrl->cursor > 0) {
+                terminal_move_cursor(mrl, -1);
+                mrl->cursor--;
             }
             return 1;
         } else if (ch == '7') {
-            pThis->escape_seq = _ESC_HOME;
+            mrl->escape_seq = _ESC_HOME;
             return 0;
         } else if (ch == '8') {
-            pThis->escape_seq = _ESC_END;
+            mrl->escape_seq = _ESC_END;
             return 0;
         }
     } else if (ch == '~') {
-        if (pThis->escape_seq == _ESC_HOME) {
-            terminal_move_cursor(pThis, -pThis->cursor);
-            pThis->cursor = 0;
+        if (mrl->escape_seq == _ESC_HOME) {
+            terminal_move_cursor(mrl, -mrl->cursor);
+            mrl->cursor = 0;
             return 1;
-        } else if (pThis->escape_seq == _ESC_END) {
-            terminal_move_cursor(pThis, pThis->cmdlen - pThis->cursor);
-            pThis->cursor = pThis->cmdlen;
+        } else if (mrl->escape_seq == _ESC_END) {
+            terminal_move_cursor(mrl, mrl->cmdlen - mrl->cursor);
+            mrl->cursor = mrl->cmdlen;
             return 1;
         }
     }
@@ -658,29 +658,29 @@ static int escape_process(microrl_t* pThis, char ch) {
 
 /**
  * \brief           Insert len char of text at cursor position
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       text: 
  * \param[in]       len: 
  * \return          
  */
-int microrl_insert_text(microrl_t* pThis, char* text, int len) {
+int microrl_insert_text(microrl_t* mrl, char* text, int len) {
     int i;
-    if (pThis->cmdlen + len < MICRORL_CFG_CMDLINE_LEN) {
-        if ((pThis->echo == MICRORL_ECHO_ONCE) & (pThis->start_password == -1)) {
-            pThis->start_password = pThis->cmdlen;
+    if (mrl->cmdlen + len < MICRORL_CFG_CMDLINE_LEN) {
+        if ((mrl->echo == MICRORL_ECHO_ONCE) & (mrl->start_password == -1)) {
+            mrl->start_password = mrl->cmdlen;
         }
-        memmove(pThis->cmdline + pThis->cursor + len,
-                pThis->cmdline + pThis->cursor,
-                pThis->cmdlen - pThis->cursor);
+        memmove(mrl->cmdline + mrl->cursor + len,
+                mrl->cmdline + mrl->cursor,
+                mrl->cmdlen - mrl->cursor);
         for (i = 0; i < len; i++) {
-            pThis->cmdline[pThis->cursor + i] = text[i];
-            if (pThis->cmdline[pThis->cursor + i] == ' ') {
-                pThis->cmdline[pThis->cursor + i] = 0;
+            mrl->cmdline[mrl->cursor + i] = text[i];
+            if (mrl->cmdline[mrl->cursor + i] == ' ') {
+                mrl->cmdline[mrl->cursor + i] = 0;
             }
         }
-        pThis->cursor += len;
-        pThis->cmdlen += len;
-        pThis->cmdline[pThis->cmdlen] = '\0';
+        mrl->cursor += len;
+        mrl->cmdlen += len;
+        mrl->cmdline[mrl->cmdlen] = '\0';
         return true;
     }
     return false;
@@ -688,31 +688,31 @@ int microrl_insert_text(microrl_t* pThis, char* text, int len) {
 
 /**
  * \brief           Remove len chars backwards at cursor
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       len: Number of chars to remove
  */
-static void microrl_backspace(microrl_t* pThis, int len) {
-    if (pThis->cursor >= len) {
-        memmove(pThis->cmdline + pThis->cursor - len,
-                pThis->cmdline + pThis->cursor,
-                pThis->cmdlen - pThis->cursor + len);
-        pThis->cursor -= len;
-        pThis->cmdline[pThis->cmdlen] = '\0';
-        pThis->cmdlen -= len;
+static void microrl_backspace(microrl_t* mrl, int len) {
+    if (mrl->cursor >= len) {
+        memmove(mrl->cmdline + mrl->cursor - len,
+                mrl->cmdline + mrl->cursor,
+                mrl->cmdlen - mrl->cursor + len);
+        mrl->cursor -= len;
+        mrl->cmdline[mrl->cmdlen] = '\0';
+        mrl->cmdlen -= len;
     }
 }
 
 /**
  * \brief           Remove one char forward at cursor
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  */
-static void microrl_delete(microrl_t* pThis) {
-    if (pThis->cmdlen > 0) {
-      memmove(pThis->cmdline + pThis->cursor,
-              pThis->cmdline + pThis->cursor + 1,
-              pThis->cmdlen - pThis->cursor + 1);
-      pThis->cmdline[pThis->cmdlen] = '\0';
-      pThis->cmdlen--;
+static void microrl_delete(microrl_t* mrl) {
+    if (mrl->cmdlen > 0) {
+      memmove(mrl->cmdline + mrl->cursor,
+              mrl->cmdline + mrl->cursor + 1,
+              mrl->cmdlen - mrl->cursor + 1);
+      mrl->cmdline[mrl->cmdlen] = '\0';
+      mrl->cmdlen--;
     }
 }
 
@@ -749,56 +749,56 @@ static int common_len(char** arr) {
 
 /**
  * \brief           
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  */
-static void microrl_get_complite(microrl_t* pThis) {
+static void microrl_get_complite(microrl_t* mrl) {
     const char* tkn_arr[MICRORL_CFG_CMD_TOKEN_NMB];
     char** compl_token;
 
-    if (pThis->get_completion == NULL) { // callback was not set
+    if (mrl->get_completion == NULL) { // callback was not set
         return;
     }
 
-    int status = split(pThis, pThis->cursor, tkn_arr);
+    int status = split(mrl, mrl->cursor, tkn_arr);
     if (status < 0) {
         return;
     }
 
-    if (pThis->cmdline[pThis->cursor - 1] == '\0') {
+    if (mrl->cmdline[mrl->cursor - 1] == '\0') {
         tkn_arr[status++] = "";
     }
-    compl_token = pThis->get_completion(pThis, status, tkn_arr);
+    compl_token = mrl->get_completion(mrl, status, tkn_arr);
 #if MICRORL_CFG_USE_QUOTING
-    restore(pThis);
+    restore(mrl);
 #endif /* MICRORL_CFG_USE_QUOTING */
     if (compl_token[0] != NULL) {
         int i = 0;
         int len;
-        int pos = pThis->cursor;
+        int pos = mrl->cursor;
 
         if (compl_token[1] == NULL) {
             len = strlen(compl_token[0]);
         } else {
             len = common_len(compl_token);
-            terminal_newline(pThis);
+            terminal_newline(mrl);
             while (compl_token[i] != NULL) {
-                pThis->print(pThis, compl_token[i]);
-                pThis->print(pThis, " ");
+                mrl->print(mrl, compl_token[i]);
+                mrl->print(mrl, " ");
                 i++;
             }
-            terminal_newline(pThis);
-            print_prompt(pThis);
+            terminal_newline(mrl);
+            print_prompt(mrl);
             pos = 0;
         }
 
         if (len) {
-            microrl_insert_text(pThis, compl_token[0] + strlen(tkn_arr[status - 1]),
+            microrl_insert_text(mrl, compl_token[0] + strlen(tkn_arr[status - 1]),
                                 len - strlen(tkn_arr[status - 1]));
             if (compl_token[1] == NULL) {
-                microrl_insert_text (pThis, " ", 1);
+                microrl_insert_text (mrl, " ", 1);
             }
         }
-        terminal_print_line (pThis, pos, 0);
+        terminal_print_line (mrl, pos, 0);
     }
 }
 
@@ -806,41 +806,41 @@ static void microrl_get_complite(microrl_t* pThis) {
 
 /**
  * \brief           Processing input string and calling execute() callback
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  */
-static void new_line_handler(microrl_t* pThis) {
+static void new_line_handler(microrl_t* mrl) {
     const char* tkn_arr[MICRORL_CFG_CMD_TOKEN_NMB];
     int status;
 
-    terminal_newline(pThis);
+    terminal_newline(mrl);
 #if MICRORL_CFG_USE_HISTORY
-    if ((pThis->cmdlen > 0) && (pThis->echo == MICRORL_ECHO_ON)) {
-        hist_save_line(&pThis->ring_hist, pThis->cmdline, pThis->cmdlen);
+    if ((mrl->cmdlen > 0) && (mrl->echo == MICRORL_ECHO_ON)) {
+        hist_save_line(&mrl->ring_hist, mrl->cmdline, mrl->cmdlen);
     }
 #endif /* MICRORL_CFG_USE_HISTORY */
-    if (pThis->echo == MICRORL_ECHO_ONCE) {
-        microrl_set_echo(pThis, MICRORL_ECHO_ON);
-        pThis->start_password = -1;
+    if (mrl->echo == MICRORL_ECHO_ONCE) {
+        microrl_set_echo(mrl, MICRORL_ECHO_ON);
+        mrl->start_password = -1;
     }
-    status = split(pThis, pThis->cmdlen, tkn_arr);
+    status = split(mrl, mrl->cmdlen, tkn_arr);
     if (status == -1) {
-//        pThis->print(pThis, "ERROR: Max token amount exseed\n");
+//        mrl->print(mrl, "ERROR: Max token amount exseed\n");
 #if MICRORL_CFG_USE_QUOTING
-        pThis->print(pThis, "ERROR:too many tokens or invalid quoting");
+        mrl->print(mrl, "ERROR:too many tokens or invalid quoting");
 #else
-        pThis->print(pThis, "ERROR:too many tokens");
+        mrl->print(mrl, "ERROR:too many tokens");
 #endif /* MICRORL_CFG_USE_QUOTING */
-        pThis->print(pThis, MICRORL_CFG_END_LINE);
+        mrl->print(mrl, MICRORL_CFG_END_LINE);
     }
-    if ((status > 0) && (pThis->execute != NULL)) {
-        pThis->execute(pThis, status, tkn_arr);
+    if ((status > 0) && (mrl->execute != NULL)) {
+        mrl->execute(mrl, status, tkn_arr);
     }
-    print_prompt(pThis);
-    pThis->cmdlen = 0;
-    pThis->cursor = 0;
-    memset(pThis->cmdline, 0, MICRORL_CFG_CMDLINE_LEN);
+    print_prompt(mrl);
+    mrl->cmdlen = 0;
+    mrl->cursor = 0;
+    memset(mrl->cmdline, 0, MICRORL_CFG_CMDLINE_LEN);
 #if MICRORL_CFG_USE_HISTORY
-    pThis->ring_hist.cur = 0;
+    mrl->ring_hist.cur = 0;
 #endif /* MICRORL_CFG_USE_HISTORY */
 }
 
@@ -849,137 +849,137 @@ static void new_line_handler(microrl_t* pThis) {
  *
  * For example calls in usart RX interrupt
  *
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       ch: Printing to terminal character 
  */
-void microrl_insert_char(microrl_t* pThis, int ch) {
+void microrl_insert_char(microrl_t* mrl, int ch) {
 #if MICRORL_CFG_USE_ESC_SEQ
-    if (pThis->escape) {
-        if (escape_process(pThis, ch)) {
-            pThis->escape = 0;
+    if (mrl->escape) {
+        if (escape_process(mrl, ch)) {
+            mrl->escape = 0;
         }
     } else {
 #endif /* MICRORL_CFG_USE_ESC_SEQ */
         if (ch == KEY_CR || ch == KEY_LF) {
             // Only trigger a newline if ch doen't follow its companion's
             // triggering a newline.
-            if (pThis->last_endl == (ch == KEY_CR ? KEY_LF : KEY_CR)) {
-                pThis->last_endl = 0;      // ignore char, but clear newline state
+            if (mrl->last_endl == (ch == KEY_CR ? KEY_LF : KEY_CR)) {
+                mrl->last_endl = 0;      // ignore char, but clear newline state
             } else {
-                pThis->last_endl = ch;
-                new_line_handler(pThis);
+                mrl->last_endl = ch;
+                new_line_handler(mrl);
             }
             return;
         }
-        pThis->last_endl = 0;
+        mrl->last_endl = 0;
         switch (ch) {
             //-----------------------------------------------------
 #if MICRORL_CFG_USE_COMPLETE
             case KEY_HT:
-                microrl_get_complite(pThis);
+                microrl_get_complite(mrl);
                 break;
 #endif /* MICRORL_CFG_USE_COMPLETE */
             //-----------------------------------------------------
             case KEY_ESC:
 #if MICRORL_CFG_USE_ESC_SEQ
-                pThis->escape = 1;
+                mrl->escape = 1;
 #endif /* MICRORL_CFG_USE_ESC_SEQ */
                 break;
             //-----------------------------------------------------
             case KEY_NAK: // ^U
-                if (pThis->cursor > 0) {
-                    microrl_backspace(pThis, pThis->cursor);
+                if (mrl->cursor > 0) {
+                    microrl_backspace(mrl, mrl->cursor);
                 }
-                terminal_print_line(pThis, 0, 1);
+                terminal_print_line(mrl, 0, 1);
                 break;
             //-----------------------------------------------------
             case KEY_VT:  // ^K
-                pThis->print(pThis, "\033[K");
-                pThis->cmdlen = pThis->cursor;
+                mrl->print(mrl, "\033[K");
+                mrl->cmdlen = mrl->cursor;
                 break;
             //-----------------------------------------------------
             case KEY_ENQ: // ^E
-                terminal_move_cursor(pThis, pThis->cmdlen - pThis->cursor);
-                pThis->cursor = pThis->cmdlen;
+                terminal_move_cursor(mrl, mrl->cmdlen - mrl->cursor);
+                mrl->cursor = mrl->cmdlen;
                 break;
             //-----------------------------------------------------
             case KEY_SOH: // ^A
-                terminal_move_cursor(pThis, -pThis->cursor);
-                pThis->cursor = 0;
+                terminal_move_cursor(mrl, -mrl->cursor);
+                mrl->cursor = 0;
                 break;
             //-----------------------------------------------------
             case KEY_ACK: // ^F
-                if (pThis->cursor < pThis->cmdlen) {
-                    terminal_move_cursor(pThis, 1);
-                    pThis->cursor++;
+                if (mrl->cursor < mrl->cmdlen) {
+                    terminal_move_cursor(mrl, 1);
+                    mrl->cursor++;
                 }
                 break;
             //-----------------------------------------------------
             case KEY_STX: // ^B
-                if (pThis->cursor) {
-                    terminal_move_cursor(pThis, -1);
-                    pThis->cursor--;
+                if (mrl->cursor) {
+                    terminal_move_cursor(mrl, -1);
+                    mrl->cursor--;
                 }
                 break;
             //-----------------------------------------------------
             case KEY_DLE: //^P
 #if MICRORL_CFG_USE_HISTORY
-                hist_search(pThis, _HIST_UP);
+                hist_search(mrl, _HIST_UP);
 #endif /* MICRORL_CFG_USE_HISTORY */
                 break;
             //-----------------------------------------------------
             case KEY_SO: //^N
 #if MICRORL_CFG_USE_HISTORY
-                hist_search(pThis, _HIST_DOWN);
+                hist_search(mrl, _HIST_DOWN);
 #endif /* MICRORL_CFG_USE_HISTORY */
                 break;
             //-----------------------------------------------------
             case KEY_DEL: // Backspace
             case KEY_BS: // ^H
-                if (pThis->cursor > 0) {
-                    microrl_backspace(pThis, 1);
-                    if (pThis->cursor == pThis->cmdlen) {
-                        terminal_backspace(pThis);
+                if (mrl->cursor > 0) {
+                    microrl_backspace(mrl, 1);
+                    if (mrl->cursor == mrl->cmdlen) {
+                        terminal_backspace(mrl);
                     } else {
-                        terminal_print_line(pThis, pThis->cursor, 1);
+                        terminal_print_line(mrl, mrl->cursor, 1);
                     }
                 }
                 break;
             //-----------------------------------------------------
             case KEY_EOT: // ^D
-                microrl_delete(pThis);
-                terminal_print_line(pThis, pThis->cursor, 0);
+                microrl_delete(mrl);
+                terminal_print_line(mrl, mrl->cursor, 0);
                 break;
             //-----------------------------------------------------
             case KEY_DC2: // ^R
-                terminal_newline(pThis);
-                print_prompt(pThis);
-                terminal_print_line(pThis, 0, 0);
+                terminal_newline(mrl);
+                print_prompt(mrl);
+                terminal_print_line(mrl, 0, 0);
                 break;
             //-----------------------------------------------------
 #if MICRORL_CFG_USE_CTRL_C
             case KEY_ETX:
-                if (pThis->sigint != NULL) {
-                    pThis->sigint(pThis);
+                if (mrl->sigint != NULL) {
+                    mrl->sigint(mrl);
                 }
                 break;
 #endif /* MICRORL_CFG_USE_CTRL_C */
             //-----------------------------------------------------
             default:
-                if (((ch == ' ') && (pThis->cmdlen == 0)) || IS_CONTROL_CHAR(ch)) {
+                if (((ch == ' ') && (mrl->cmdlen == 0)) || IS_CONTROL_CHAR(ch)) {
                     break;
                 }
-                if (microrl_insert_text(pThis, (char*)&ch, 1)) {
-                    if (pThis->cursor == pThis->cmdlen) {
+                if (microrl_insert_text(mrl, (char*)&ch, 1)) {
+                    if (mrl->cursor == mrl->cmdlen) {
                         char nch [] = {0, 0};
-                        if ((pThis->cursor >= pThis->start_password) & (pThis->echo == MICRORL_ECHO_ONCE)) {
+                        if ((mrl->cursor >= mrl->start_password) & (mrl->echo == MICRORL_ECHO_ONCE)) {
                             nch[0] = '*';
                         } else {
                             nch[0] = ch;
                         }
-                        pThis->print(pThis, nch);
+                        mrl->print(mrl, nch);
                     } else {
-                        terminal_print_line(pThis, pThis->cursor - 1, 0);
+                        terminal_print_line(mrl, mrl->cursor - 1, 0);
                     }
                 }
                 break;

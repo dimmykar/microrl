@@ -69,10 +69,10 @@ void init(void) {
 
 /**
  * \brief           Print to IO stream callback for MicroRL library
- * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       mrl: \ref microrl_t working instance
  * \param[in]       str: Output string
  */
-void print(microrl_t* pThis, const char* str) {
+void print(microrl_t* mrl, const char* str) {
     fprintf(stdout, "%s", str);
 }
 
@@ -94,16 +94,16 @@ char get_char(void) {
 
 /**
  * \brief           HELP command callback
- * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       mrl: \ref microrl_t working instance
  */
-void print_help(microrl_t* pThis) {
-    print(pThis, "Use TAB key for completion\n\rCommand:\n\r");
-    print(pThis, "\tversion {microrl | demo} - print version of microrl lib or version of this demo src\n\r");
-    print(pThis, "\thelp  - this message\n\r");
-    print(pThis, "\tclear - clear screen\n\r");
-    print(pThis, "\tlist  - list all commands in tree\n\r");
-    print(pThis, "\tname[string] - print 'name' value if no 'string', set name value to 'string' if 'string' present\n\r");
-    print(pThis, "\tlisp - dummy command for demonstation auto-completion, while inputed 'l+<TAB>'\n\r");
+void print_help(microrl_t* mrl) {
+    print(mrl, "Use TAB key for completion\n\rCommand:\n\r");
+    print(mrl, "\tversion {microrl | demo} - print version of microrl lib or version of this demo src\n\r");
+    print(mrl, "\thelp  - this message\n\r");
+    print(mrl, "\tclear - clear screen\n\r");
+    print(mrl, "\tlist  - list all commands in tree\n\r");
+    print(mrl, "\tname[string] - print 'name' value if no 'string', set name value to 'string' if 'string' present\n\r");
+    print(mrl, "\tlisp - dummy command for demonstation auto-completion, while inputed 'l+<TAB>'\n\r");
 }
 
 /**
@@ -111,56 +111,56 @@ void print_help(microrl_t* pThis) {
  *
  * Do what you want here, but don't write to argv!!! read only!!
  *
- * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       mrl: \ref microrl_t working instance
  * \param[in]       argc: argument count
  * \param[in]       argv: pointer array to token string
  * \return          
  */
-int execute(microrl_t* pThis, int argc, const char* const *argv) {
+int execute(microrl_t* mrl, int argc, const char* const *argv) {
     int i = 0;
     // just iterate through argv word and compare it with your commands
     while (i < argc) {
         if (strcmp (argv[i], _CMD_HELP) == 0) {
-            print(pThis, "microrl library based shell v 1.0\n\r");
+            print(mrl, "microrl library based shell v 1.0\n\r");
             print_help();        // print help
         } else if (strcmp (argv[i], _CMD_NAME) == 0) {
             if ((++i) < argc) { // if value preset
                 if (strlen(argv[i]) < _NAME_LEN) {
                     strcpy(name, argv[i]);
                 } else {
-                    print(pThis, "name value too long!\n\r");
+                    print(mrl, "name value too long!\n\r");
                 }
             } else {
-                print(pThis, name);
-                print(pThis, "\n\r");
+                print(mrl, name);
+                print(mrl, "\n\r");
             }
         } else if (strcmp(argv[i], _CMD_VER) == 0) {
             if (++i < argc) {
                 if (strcmp(argv[i], _SCMD_DEMO) == 0) {
-                    print(pThis, "demo v 1.0\n\r");
+                    print(mrl, "demo v 1.0\n\r");
                 } else if (strcmp(argv[i], _SCMD_MRL) == 0) {
-                    print(pThis, "microrl v 1.2\n\r");
+                    print(mrl, "microrl v 1.2\n\r");
                 } else {
-                    print(pThis, (char*)argv[i]);
-                    print(pThis, " wrong argument, see help\n\r");
+                    print(mrl, (char*)argv[i]);
+                    print(mrl, " wrong argument, see help\n\r");
                 }
             } else {
-                print(pThis, "version needs 1 parametr, see help\n\r");
+                print(mrl, "version needs 1 parametr, see help\n\r");
             }
         } else if (strcmp(argv[i], _CMD_CLEAR) == 0) {
-            print(pThis, "\033[2J");    // ESC seq for clear entire screen
-            print(pThis, "\033[H");     // ESC seq for move cursor at left-top corner
+            print(mrl, "\033[2J");    // ESC seq for clear entire screen
+            print(mrl, "\033[H");     // ESC seq for move cursor at left-top corner
         } else if (strcmp(argv[i], _CMD_LIST) == 0) {
-            print(pThis, "available command:\n");// print all command per line
+            print(mrl, "available command:\n");// print all command per line
             for (int i = 0; i < _NUM_OF_CMD; i++) {
-                print(pThis, "\t");
-                print(pThis, keyword[i]);
-                print(pThis, "\n\r");
+                print(mrl, "\t");
+                print(mrl, keyword[i]);
+                print(mrl, "\n\r");
             }
         } else {
-            print(pThis, "command: '");
-            print(pThis, (char*)argv[i]);
-            print(pThis, "' Not found.\n\r");
+            print(mrl, "command: '");
+            print(mrl, (char*)argv[i]);
+            print(mrl, "' Not found.\n\r");
         }
         i++;
     }
@@ -170,12 +170,13 @@ int execute(microrl_t* pThis, int argc, const char* const *argv) {
 #if MICRORL_CFG_USE_COMPLETE || __DOXYGEN__
 /**
  * \brief           Completion callback for MicroRL library
- * \param[in,out]   pThis: \ref microrl_t working instance
+ * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       argc: argument count
  * \param[in]       argv: pointer array to token string
  * \return          NULL-terminated string, contain complite variant split by 'Whitespace'
  */
-char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
+char ** complet(microrl_t* mrl, int argc, const char* const *argv) {
+    (void)mrl;
     int j = 0;
 
     compl_word[0] = NULL;
@@ -215,9 +216,9 @@ char ** complet(microrl_t* pThis, int argc, const char* const *argv) {
 #if MICRORL_CFG_USE_CTRL_C || __DOXYGEN__
 /**
  * \brief           Ctrl+C terminal signal function
- * \param[in]       pThis: \ref microrl_t working instance
+ * \param[in]       mrl: \ref microrl_t working instance
  */
-void sigint(microrl_t* pThis) {
-    print(pThis, "^C catched!\n\r");
+void sigint(microrl_t* mrl) {
+    print(mrl, "^C catched!\n\r");
 }
 #endif /* MICRORL_CFG_USE_CTRL_C || __DOXYGEN__ */
