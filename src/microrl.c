@@ -872,67 +872,77 @@ void microrl_insert_char(microrl_t* mrl, int ch) {
         switch (ch) {
             //-----------------------------------------------------
 #if MICRORL_CFG_USE_COMPLETE
-            case MICRORL_KEY_HT:
+            case MICRORL_KEY_HT: {
                 microrl_get_complite(mrl);
                 break;
+            }
 #endif /* MICRORL_CFG_USE_COMPLETE */
             //-----------------------------------------------------
-            case MICRORL_KEY_ESC:
+            case MICRORL_KEY_ESC: {
 #if MICRORL_CFG_USE_ESC_SEQ
                 mrl->escape = 1;
 #endif /* MICRORL_CFG_USE_ESC_SEQ */
                 break;
+            }
             //-----------------------------------------------------
-            case MICRORL_KEY_NAK: // ^U
+            case MICRORL_KEY_NAK: { // ^U
                 if (mrl->cursor > 0) {
                     microrl_backspace(mrl, mrl->cursor);
                 }
                 terminal_print_line(mrl, 0, 1);
                 break;
+            }
             //-----------------------------------------------------
-            case MICRORL_KEY_VT:  // ^K
+            case MICRORL_KEY_VT: { // ^K
                 mrl->print(mrl, "\033[K");
                 mrl->cmdlen = mrl->cursor;
                 break;
+            }
             //-----------------------------------------------------
-            case MICRORL_KEY_ENQ: // ^E
+            case MICRORL_KEY_ENQ: { // ^E
                 terminal_move_cursor(mrl, mrl->cmdlen - mrl->cursor);
                 mrl->cursor = mrl->cmdlen;
                 break;
+            }
             //-----------------------------------------------------
-            case MICRORL_KEY_SOH: // ^A
+            case MICRORL_KEY_SOH: { // ^A
                 terminal_move_cursor(mrl, -mrl->cursor);
                 mrl->cursor = 0;
                 break;
+            }
             //-----------------------------------------------------
-            case MICRORL_KEY_ACK: // ^F
+            case MICRORL_KEY_ACK: { // ^F
                 if (mrl->cursor < mrl->cmdlen) {
                     terminal_move_cursor(mrl, 1);
                     mrl->cursor++;
                 }
                 break;
+            }
             //-----------------------------------------------------
-            case MICRORL_KEY_STX: // ^B
+            case MICRORL_KEY_STX: { // ^B
                 if (mrl->cursor) {
                     terminal_move_cursor(mrl, -1);
                     mrl->cursor--;
                 }
                 break;
+            }
             //-----------------------------------------------------
-            case MICRORL_KEY_DLE: //^P
+            case MICRORL_KEY_DLE: { //^P
 #if MICRORL_CFG_USE_HISTORY
                 hist_search(mrl, MICRORL_HIST_DIR_UP);
 #endif /* MICRORL_CFG_USE_HISTORY */
                 break;
+            }
             //-----------------------------------------------------
-            case MICRORL_KEY_SO: //^N
+            case MICRORL_KEY_SO: { //^N
 #if MICRORL_CFG_USE_HISTORY
                 hist_search(mrl, MICRORL_HIST_DIR_DOWN);
 #endif /* MICRORL_CFG_USE_HISTORY */
                 break;
+            }
             //-----------------------------------------------------
             case MICRORL_KEY_DEL: // Backspace
-            case MICRORL_KEY_BS: // ^H
+            case MICRORL_KEY_BS: { // ^H
                 if (mrl->cursor > 0) {
                     microrl_backspace(mrl, 1);
                     if (mrl->cursor == mrl->cmdlen) {
@@ -942,27 +952,31 @@ void microrl_insert_char(microrl_t* mrl, int ch) {
                     }
                 }
                 break;
+            }
             //-----------------------------------------------------
-            case MICRORL_KEY_EOT: // ^D
+            case MICRORL_KEY_EOT: { // ^D
                 microrl_delete(mrl);
                 terminal_print_line(mrl, mrl->cursor, 0);
                 break;
+            }
             //-----------------------------------------------------
-            case MICRORL_KEY_DC2: // ^R
+            case MICRORL_KEY_DC2: { // ^R
                 terminal_newline(mrl);
                 print_prompt(mrl);
                 terminal_print_line(mrl, 0, 0);
                 break;
+            }
             //-----------------------------------------------------
 #if MICRORL_CFG_USE_CTRL_C
-            case MICRORL_KEY_ETX:
+            case MICRORL_KEY_ETX: {
                 if (mrl->sigint != NULL) {
                     mrl->sigint(mrl);
                 }
                 break;
+            }
 #endif /* MICRORL_CFG_USE_CTRL_C */
             //-----------------------------------------------------
-            default:
+            default: {
                 if (((ch == ' ') && (mrl->cmdlen == 0)) || IS_CONTROL_CHAR(ch)) {
                     break;
                 }
@@ -979,7 +993,7 @@ void microrl_insert_char(microrl_t* mrl, int ch) {
                         terminal_print_line(mrl, mrl->cursor - 1, 0);
                     }
                 }
-                break;
+            }
         }
 #if MICRORL_CFG_USE_ESC_SEQ
     }
