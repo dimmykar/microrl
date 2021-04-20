@@ -41,9 +41,6 @@ extern "C" {
  * \{
  */
 
-/**
- * \brief           Boolean values that not implemented in C
- */
 #ifndef false
 #define false           0
 #endif /* false */
@@ -60,6 +57,15 @@ typedef enum {
     microrlERRPAR,                              /*!< Parameter error */
     microrlERRMEM,                              /*!< Memory error */
 } microrlr_t;
+
+/**
+ * \brief           ESC seq internal codes
+ */
+typedef enum {
+    MICRORL_ESC_BRACKET = 0x01,
+    MICRORL_ESC_HOME,
+    MICRORL_ESC_END
+} microrl_esq_code_t;
 
 /**
  * \brief           List of possible echo modes
@@ -143,7 +149,7 @@ typedef void      (*microrl_sigint_fn)(struct microrl* mrl);
  */
 typedef struct microrl {
 #if MICRORL_CFG_USE_ESC_SEQ
-    char escape_seq;
+    microrl_esq_code_t escape_seq;              /*!< member of \ref microrl_esq_code_t */
     char escape;
 #endif /* MICRORL_CFG_USE_ESC_SEQ */
     char last_endl;                             /*!< either 0 or the CR or LF that just triggered a newline */

@@ -40,59 +40,55 @@
 #include "microrl.h"
 
 /**
- * \brief           List of key codes
+ * \brief           List of ASCII key codes
  */
-#define KEY_NUL         0      /*!< ^@ Null character */
-#define KEY_SOH         1      /*!< ^A Start of heading, = console interrupt */
-#define KEY_STX         2      /*!< ^B Start of text, maintenance mode on HP console */
-#define KEY_ETX         3      /*!< ^C End of text */
-#define KEY_EOT         4      /*!< ^D End of transmission, not the same as ETB */
-#define KEY_ENQ         5      /*!< ^E Enquiry, goes with ACK; old HP flow control */
-#define KEY_ACK         6      /*!< ^F Acknowledge, clears ENQ logon hand */
-#define KEY_BEL         7      /*!< ^G Bell, rings the bell... */
-#define KEY_BS          8      /*!< ^H Backspace, works on HP terminals/computers */
-#define KEY_HT          9      /*!< ^I Horizontal tab, move to next tab stop */
-#define KEY_LF          10     /*!< ^J Line Feed */
-#define KEY_VT          11     /*!< ^K Vertical tab */
-#define KEY_FF          12     /*!< ^L Form Feed, page eject */
-#define KEY_CR          13     /*!< ^M Carriage Return*/
-#define KEY_SO          14     /*!< ^N Shift Out, alternate character set */
-#define KEY_SI          15     /*!< ^O Shift In, resume defaultn character set */
-#define KEY_DLE         16     /*!< ^P Data link escape */
-#define KEY_DC1         17     /*!< ^Q XON, with XOFF to pause listings; "okay to send". */
-#define KEY_DC2         18     /*!< ^R Device control 2, block-mode flow control */
-#define KEY_DC3         19     /*!< ^S XOFF, with XON is TERM=18 flow control */
-#define KEY_DC4         20     /*!< ^T Device control 4 */
-#define KEY_NAK         21     /*!< ^U Negative acknowledge */
-#define KEY_SYN         22     /*!< ^V Synchronous idle */
-#define KEY_ETB         23     /*!< ^W End transmission block, not the same as EOT */
-#define KEY_CAN         24     /*!< ^X Cancel line, MPE echoes !!! */
-#define KEY_EM          25     /*!< ^Y End of medium, Control-Y interrupt */
-#define KEY_SUB         26     /*!< ^Z Substitute */
-#define KEY_ESC         27     /*!< ^[ Escape, next character is not echoed */
-#define KEY_FS          28     /*!< ^\ File separator */
-#define KEY_GS          29     /*!< ^] Group separator */
-#define KEY_RS          30     /*!< ^^ Record separator, block-mode terminator */
-#define KEY_US          31     /*!< ^_ Unit separator */
+typedef enum {
+    MICRORL_KEY_NUL = 0,                            /*!< ^@ Null character */
+    MICRORL_KEY_SOH = 1,                            /*!< ^A Start of heading, = console interrupt */
+    MICRORL_KEY_STX = 2,                            /*!< ^B Start of text, maintenance mode on HP console */
+    MICRORL_KEY_ETX = 3,                            /*!< ^C End of text */
+    MICRORL_KEY_EOT = 4,                            /*!< ^D End of transmission, not the same as ETB */
+    MICRORL_KEY_ENQ = 5,                            /*!< ^E Enquiry, goes with ACK; old HP flow control */
+    MICRORL_KEY_ACK = 6,                            /*!< ^F Acknowledge, clears ENQ logon hand */
+    MICRORL_KEY_BEL = 7,                            /*!< ^G Bell, rings the bell... */
+    MICRORL_KEY_BS = 8,                             /*!< ^H Backspace, works on HP terminals/computers */
+    MICRORL_KEY_HT = 9,                             /*!< ^I Horizontal tab, move to next tab stop */
+    MICRORL_KEY_LF = 10,                            /*!< ^J Line Feed */
+    MICRORL_KEY_VT = 11,                            /*!< ^K Vertical tab */
+    MICRORL_KEY_FF = 12,                            /*!< ^L Form Feed, page eject */
+    MICRORL_KEY_CR = 13,                            /*!< ^M Carriage Return*/
+    MICRORL_KEY_SO = 14,                            /*!< ^N Shift Out, alternate character set */
+    MICRORL_KEY_SI = 15,                            /*!< ^O Shift In, resume defaultn character set */
+    MICRORL_KEY_DLE = 16,                           /*!< ^P Data link escape */
+    MICRORL_KEY_DC1 = 17,                           /*!< ^Q XON, with XOFF to pause listings; "okay to send". */
+    MICRORL_KEY_DC2 = 18,                           /*!< ^R Device control 2, block-mode flow control */
+    MICRORL_KEY_DC3 = 19,                           /*!< ^S XOFF, with XON is TERM=18 flow control */
+    MICRORL_KEY_DC4 = 20,                           /*!< ^T Device control 4 */
+    MICRORL_KEY_NAK = 21,                           /*!< ^U Negative acknowledge */
+    MICRORL_KEY_SYN = 22,                           /*!< ^V Synchronous idle */
+    MICRORL_KEY_ETB = 23,                           /*!< ^W End transmission block, not the same as EOT */
+    MICRORL_KEY_CAN = 24,                           /*!< ^X Cancel line, MPE echoes !!! */
+    MICRORL_KEY_EM = 25,                            /*!< ^Y End of medium, Control-Y interrupt */
+    MICRORL_KEY_SUB = 26,                           /*!< ^Z Substitute */
+    MICRORL_KEY_ESC = 27,                           /*!< ^[ Escape, next character is not echoed */
+    MICRORL_KEY_FS = 28,                            /*!< ^\ File separator */
+    MICRORL_KEY_GS = 29,                            /*!< ^] Group separator */
+    MICRORL_KEY_RS = 30,                            /*!< ^^ Record separator, block-mode terminator */
+    MICRORL_KEY_US = 31,                            /*!< ^_ Unit separator */
 
-#define KEY_DEL         127    /*!< Delete (not a real control character...) */
+    MICRORL_KEY_DEL = 127                           /*!< Delete (not a real control character...) */
+} microrl_key_ascii_t;
 
-#define IS_CONTROL_CHAR(x)    ((x) <= 31)
+#define IS_CONTROL_CHAR(x)                  ((x) <= 31)
 
 
 /**
  * \brief           Direction of history navigation
  */
-#define _HIST_UP        0
-#define _HIST_DOWN      1
-
-
-/**
- * \brief           ESC seq internal codes
- */
-#define _ESC_BRACKET    1
-#define _ESC_HOME       2
-#define _ESC_END        3
+typedef enum {
+    MICRORL_HIST_DIR_UP = 0,
+    MICRORL_HIST_DIR_DOWN
+} microrl_hist_dir_t;
 
 static char* prompt_default = MICRORL_CFG_PROMPT_STRING;
 
@@ -147,8 +143,8 @@ static void hist_erase_older(microrl_hist_rbuf_t* prbuf) {
 /**
  * \brief           Check space for new line, remove older while not space
  * \param[in]       prbuf: Pointer to \ref microrl_hist_rbuf_t structure
- * \param[in]       len: 
- * \return          
+ * \param[in]       len: Length of new line to save in history
+ * \return          false if ring buffer is full, true otherwise
  */
 static int hist_is_space_for_new(microrl_hist_rbuf_t* prbuf, int len) {
     if (prbuf->ring_buf[prbuf->begin] == 0) {
@@ -211,10 +207,10 @@ static void hist_save_line(microrl_hist_rbuf_t* prbuf, char* line, int len) {
  * \brief           Copy saved line to 'line' and return size of line
  * \param[in]       prbuf: Pointer to \ref microrl_hist_rbuf_t structure
  * \param[out]      line: Restored line from history
- * \param[in]       dir: Record search direction
+ * \param[in]       dir: Record search direction, member of \ref microrl_hist_dir_t
  * \return          Size of restored line. 0 is returned, if history is empty
  */
-static int hist_restore_line(microrl_hist_rbuf_t* prbuf, char* line, int dir) {
+static int hist_restore_line(microrl_hist_rbuf_t* prbuf, char* line, microrl_hist_dir_t dir) {
     int cnt = 0;
     // count history record
     int header = prbuf->begin;
@@ -226,7 +222,7 @@ static int hist_restore_line(microrl_hist_rbuf_t* prbuf, char* line, int dir) {
         cnt++;
     }
 
-    if (dir == _HIST_UP) {
+    if (dir == MICRORL_HIST_DIR_UP) {
         if (cnt >= prbuf->cur) {
             int header = prbuf->begin;
             int j = 0;
@@ -312,8 +308,8 @@ static void restore(microrl_t* mrl) {
 /**
  * \brief           Split command line to tokens array
  * \param[in,out]   mrl: \ref microrl_t working instance
- * \param[in]       limit: 
- * \param[in]       tkn_arr: 
+ * \param[in]       limit: Command line symbols limit
+ * \param[in]       tkn_arr: Tokens buffer stored split words
  * \return          Number of split tokens
  */
 static int split(microrl_t* mrl, int limit, const char** tkn_arr) {
@@ -329,7 +325,7 @@ static int split(microrl_t* mrl, int limit, const char** tkn_arr) {
     iq = 0;
 #endif /* MICRORL_CFG_USE_QUOTING */
     while (1) {
-        // go to the first NOT whitespace (not zero for us)
+        // go to the first whitespace (zero for us)
         while ((mrl->cmdline[ind] == '\0') && (ind < limit)) {
             ind++;
         }
@@ -356,7 +352,7 @@ static int split(microrl_t* mrl, int limit, const char** tkn_arr) {
 #endif /* MICRORL_CFG_USE_QUOTING */
             return -1;
         }
-        // go to the first whitespace (zero for us)
+        // go to the first NOT whitespace (not zero for us)
         while (ind < limit) {
             if (mrl->cmdline[ind] == '\0') {
 #if MICRORL_CFG_USE_QUOTING
@@ -607,17 +603,17 @@ static void hist_search(microrl_t* mrl, int dir) {
  */
 static int escape_process(microrl_t* mrl, char ch) {
     if (ch == '[') {
-        mrl->escape_seq = _ESC_BRACKET;
+        mrl->escape_seq = MICRORL_ESC_BRACKET;
         return 0;
-    } else if (mrl->escape_seq == _ESC_BRACKET) {
+    } else if (mrl->escape_seq == MICRORL_ESC_BRACKET) {
         if (ch == 'A') {
 #if MICRORL_CFG_USE_HISTORY
-            hist_search(mrl, _HIST_UP);
+            hist_search(mrl, MICRORL_HIST_DIR_UP);
 #endif /* MICRORL_CFG_USE_HISTORY */
             return 1;
         } else if (ch == 'B') {
 #if MICRORL_CFG_USE_HISTORY
-            hist_search(mrl, _HIST_DOWN);
+            hist_search(mrl, MICRORL_HIST_DIR_DOWN);
 #endif /* MICRORL_CFG_USE_HISTORY */
             return 1;
         } else if (ch == 'C') {
@@ -633,18 +629,18 @@ static int escape_process(microrl_t* mrl, char ch) {
             }
             return 1;
         } else if (ch == '7') {
-            mrl->escape_seq = _ESC_HOME;
+            mrl->escape_seq = MICRORL_ESC_HOME;
             return 0;
         } else if (ch == '8') {
-            mrl->escape_seq = _ESC_END;
+            mrl->escape_seq = MICRORL_ESC_END;
             return 0;
         }
     } else if (ch == '~') {
-        if (mrl->escape_seq == _ESC_HOME) {
+        if (mrl->escape_seq == MICRORL_ESC_HOME) {
             terminal_move_cursor(mrl, -mrl->cursor);
             mrl->cursor = 0;
             return 1;
-        } else if (mrl->escape_seq == _ESC_END) {
+        } else if (mrl->escape_seq == MICRORL_ESC_END) {
             terminal_move_cursor(mrl, mrl->cmdlen - mrl->cursor);
             mrl->cursor = mrl->cmdlen;
             return 1;
@@ -659,9 +655,9 @@ static int escape_process(microrl_t* mrl, char ch) {
 /**
  * \brief           Insert len char of text at cursor position
  * \param[in,out]   mrl: \ref microrl_t working instance
- * \param[in]       text: 
- * \param[in]       len: 
- * \return          
+ * \param[in]       text: Record to store in cmdline of \ref microrl_t
+ * \param[in]       len: Length of text to store
+ * \return          true on success, false othervise
  */
 int microrl_insert_text(microrl_t* mrl, char* text, int len) {
     int i;
@@ -748,7 +744,8 @@ static int common_len(char** arr) {
 }
 
 /**
- * \brief           
+ * \brief           Auto-complete activities to complete input in
+ *                  command line
  * \param[in,out]   mrl: \ref microrl_t working instance
  */
 static void microrl_get_complite(microrl_t* mrl) {
@@ -795,10 +792,10 @@ static void microrl_get_complite(microrl_t* mrl) {
             microrl_insert_text(mrl, compl_token[0] + strlen(tkn_arr[status - 1]),
                                 len - strlen(tkn_arr[status - 1]));
             if (compl_token[1] == NULL) {
-                microrl_insert_text (mrl, " ", 1);
+                microrl_insert_text(mrl, " ", 1);
             }
         }
-        terminal_print_line (mrl, pos, 0);
+        terminal_print_line(mrl, pos, 0);
     }
 }
 
@@ -860,10 +857,10 @@ void microrl_insert_char(microrl_t* mrl, int ch) {
         }
     } else {
 #endif /* MICRORL_CFG_USE_ESC_SEQ */
-        if (ch == KEY_CR || ch == KEY_LF) {
+        if (ch == MICRORL_KEY_CR || ch == MICRORL_KEY_LF) {
             // Only trigger a newline if ch doen't follow its companion's
             // triggering a newline.
-            if (mrl->last_endl == (ch == KEY_CR ? KEY_LF : KEY_CR)) {
+            if (mrl->last_endl == (ch == MICRORL_KEY_CR ? MICRORL_KEY_LF : MICRORL_KEY_CR)) {
                 mrl->last_endl = 0;      // ignore char, but clear newline state
             } else {
                 mrl->last_endl = ch;
@@ -875,67 +872,67 @@ void microrl_insert_char(microrl_t* mrl, int ch) {
         switch (ch) {
             //-----------------------------------------------------
 #if MICRORL_CFG_USE_COMPLETE
-            case KEY_HT:
+            case MICRORL_KEY_HT:
                 microrl_get_complite(mrl);
                 break;
 #endif /* MICRORL_CFG_USE_COMPLETE */
             //-----------------------------------------------------
-            case KEY_ESC:
+            case MICRORL_KEY_ESC:
 #if MICRORL_CFG_USE_ESC_SEQ
                 mrl->escape = 1;
 #endif /* MICRORL_CFG_USE_ESC_SEQ */
                 break;
             //-----------------------------------------------------
-            case KEY_NAK: // ^U
+            case MICRORL_KEY_NAK: // ^U
                 if (mrl->cursor > 0) {
                     microrl_backspace(mrl, mrl->cursor);
                 }
                 terminal_print_line(mrl, 0, 1);
                 break;
             //-----------------------------------------------------
-            case KEY_VT:  // ^K
+            case MICRORL_KEY_VT:  // ^K
                 mrl->print(mrl, "\033[K");
                 mrl->cmdlen = mrl->cursor;
                 break;
             //-----------------------------------------------------
-            case KEY_ENQ: // ^E
+            case MICRORL_KEY_ENQ: // ^E
                 terminal_move_cursor(mrl, mrl->cmdlen - mrl->cursor);
                 mrl->cursor = mrl->cmdlen;
                 break;
             //-----------------------------------------------------
-            case KEY_SOH: // ^A
+            case MICRORL_KEY_SOH: // ^A
                 terminal_move_cursor(mrl, -mrl->cursor);
                 mrl->cursor = 0;
                 break;
             //-----------------------------------------------------
-            case KEY_ACK: // ^F
+            case MICRORL_KEY_ACK: // ^F
                 if (mrl->cursor < mrl->cmdlen) {
                     terminal_move_cursor(mrl, 1);
                     mrl->cursor++;
                 }
                 break;
             //-----------------------------------------------------
-            case KEY_STX: // ^B
+            case MICRORL_KEY_STX: // ^B
                 if (mrl->cursor) {
                     terminal_move_cursor(mrl, -1);
                     mrl->cursor--;
                 }
                 break;
             //-----------------------------------------------------
-            case KEY_DLE: //^P
+            case MICRORL_KEY_DLE: //^P
 #if MICRORL_CFG_USE_HISTORY
-                hist_search(mrl, _HIST_UP);
+                hist_search(mrl, MICRORL_HIST_DIR_UP);
 #endif /* MICRORL_CFG_USE_HISTORY */
                 break;
             //-----------------------------------------------------
-            case KEY_SO: //^N
+            case MICRORL_KEY_SO: //^N
 #if MICRORL_CFG_USE_HISTORY
-                hist_search(mrl, _HIST_DOWN);
+                hist_search(mrl, MICRORL_HIST_DIR_DOWN);
 #endif /* MICRORL_CFG_USE_HISTORY */
                 break;
             //-----------------------------------------------------
-            case KEY_DEL: // Backspace
-            case KEY_BS: // ^H
+            case MICRORL_KEY_DEL: // Backspace
+            case MICRORL_KEY_BS: // ^H
                 if (mrl->cursor > 0) {
                     microrl_backspace(mrl, 1);
                     if (mrl->cursor == mrl->cmdlen) {
@@ -946,19 +943,19 @@ void microrl_insert_char(microrl_t* mrl, int ch) {
                 }
                 break;
             //-----------------------------------------------------
-            case KEY_EOT: // ^D
+            case MICRORL_KEY_EOT: // ^D
                 microrl_delete(mrl);
                 terminal_print_line(mrl, mrl->cursor, 0);
                 break;
             //-----------------------------------------------------
-            case KEY_DC2: // ^R
+            case MICRORL_KEY_DC2: // ^R
                 terminal_newline(mrl);
                 print_prompt(mrl);
                 terminal_print_line(mrl, 0, 0);
                 break;
             //-----------------------------------------------------
 #if MICRORL_CFG_USE_CTRL_C
-            case KEY_ETX:
+            case MICRORL_KEY_ETX:
                 if (mrl->sigint != NULL) {
                     mrl->sigint(mrl);
                 }
