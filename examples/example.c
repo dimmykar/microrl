@@ -39,10 +39,10 @@ microrl_t* prl = &rl;
  */
 int main (void/*int argc, char** argv*/) {
     init();
-	
+
     // call init with ptr to microrl instance and print callback
     microrl_init(prl, print);
-	
+
     // set callback for execute
     microrl_set_execute_callback(prl, execute);
 

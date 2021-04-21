@@ -41,13 +41,6 @@ extern "C" {
  * \{
  */
 
-#ifndef false
-#define false           0
-#endif /* false */
-#ifndef true
-#define true            (!false)
-#endif /* true */
-
 /**
  * \brief           MicroRL result enumeration
  */
@@ -189,7 +182,7 @@ void        microrl_set_sigint_callback(microrl_t* mrl, microrl_sigint_fn sigint
 void        microrl_set_echo(microrl_t* mrl, microrl_echo_t echo);
 
 void        microrl_insert_char(microrl_t* mrl, int ch);
-int         microrl_insert_text(microrl_t* mrl, char* text, int len);
+microrlr_t  microrl_insert_text(microrl_t* mrl, char* text, int len);
 
 /**
  * \}

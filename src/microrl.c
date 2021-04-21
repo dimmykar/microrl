@@ -81,13 +81,21 @@ typedef enum {
 
 #define IS_CONTROL_CHAR(x)                  ((x) <= 31)
 
+/**
+ * \brief           History ring buffer memory status
+ */
+typedef enum
+{
+    MICRORL_HIST_FULL = 0,                          /*!< History ring buffer is full */
+    MICRORL_HIST_NOT_FULL                           /*!< History ring buffer is not full or empty */
+} microrl_hist_status_t;
 
 /**
  * \brief           Direction of history navigation
  */
 typedef enum {
-    MICRORL_HIST_DIR_UP = 0,
-    MICRORL_HIST_DIR_DOWN
+    MICRORL_HIST_DIR_UP = 0,                        /*!< Previous record in history ring buffer */
+    MICRORL_HIST_DIR_DOWN                           /*!< Next record in history ring buffer */
 } microrl_hist_dir_t;
 
 static char* prompt_default = MICRORL_CFG_PROMPT_STRING;
@@ -144,22 +152,22 @@ static void hist_erase_older(microrl_hist_rbuf_t* prbuf) {
  * \brief           Check space for new line, remove older while not space
  * \param[in]       prbuf: Pointer to \ref microrl_hist_rbuf_t structure
  * \param[in]       len: Length of new line to save in history
- * \return          false if ring buffer is full, true otherwise
+ * \return          Member of \ref microrl_hist_status_t enumeration
  */
-static int hist_is_space_for_new(microrl_hist_rbuf_t* prbuf, int len) {
+static microrl_hist_status_t hist_is_space_for_new(microrl_hist_rbuf_t* prbuf, int len) {
     if (prbuf->ring_buf[prbuf->begin] == 0) {
-        return true;
+        return MICRORL_HIST_NOT_FULL;
     }
     if (prbuf->end >= prbuf->begin) {
         if ((MICRORL_CFG_RING_HISTORY_LEN - prbuf->end + prbuf->begin - 1) > len) {
-            return true;
+            return MICRORL_HIST_NOT_FULL;
         }
     } else {
         if ((prbuf->begin - prbuf->end - 1) > len) {
-            return true;
+            return MICRORL_HIST_NOT_FULL;
         }
     }
-    return false;
+    return MICRORL_HIST_FULL;
 }
 
 /**
@@ -173,7 +181,7 @@ static void hist_save_line(microrl_hist_rbuf_t* prbuf, char* line, int len) {
         return;
     }
 
-    while (!hist_is_space_for_new(prbuf, len)) {
+    while (hist_is_space_for_new(prbuf, len) == MICRORL_HIST_FULL) {
         hist_erase_older(prbuf);
     }
 
@@ -473,8 +481,8 @@ static void terminal_move_cursor(microrl_t* mrl, int offset) {
 /**
  * \brief           Print command line to screen, replace '\0' to wihitespace
  * \param[in,out]   mrl: \ref microrl_t working instance
- * \param[in]       pos: 
- * \param[in]       reset: 
+ * \param[in]       pos: Start position from which the line will be printed
+ * \param[in]       reset: Reset the cursor position
  */
 static void terminal_print_line(microrl_t* mrl, int pos, int reset) {
     if (mrl->echo != MICRORL_ECHO_OFF) {
@@ -515,14 +523,14 @@ static void terminal_print_line(microrl_t* mrl, int pos, int reset) {
 }
 
 /**
- * \brief           Initialize MicroRL lib data
+ * \brief           Initialize MicroRL library data
  * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       print: Callback function for character output
  * \return          \ref microrlOK on success, member of \ref microrlr_t otherwise
  */
 microrlr_t microrl_init(microrl_t* mrl, microrl_print_fn print) {
     memset(mrl, 0, sizeof(microrl_t));
-	
+
     mrl->prompt_str = prompt_default;
     mrl->print = print;
 #if MICRORL_CFG_ENABLE_INIT_PROMPT
@@ -530,8 +538,8 @@ microrlr_t microrl_init(microrl_t* mrl, microrl_print_fn print) {
 #endif /* MICRORL_CFG_ENABLE_INIT_PROMPT */
     mrl->echo = MICRORL_ECHO_ON;
     mrl->start_password = -1;
-	
-	return microrlOK;
+
+    return microrlOK;
 }
 
 #if MICRORL_CFG_USE_COMPLETE || __DOXYGEN__
@@ -657,9 +665,9 @@ static int escape_process(microrl_t* mrl, char ch) {
  * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       text: Record to store in cmdline of \ref microrl_t
  * \param[in]       len: Length of text to store
- * \return          true on success, false othervise
+ * \return          \ref microrlOK on success, \ref microrlERR otherwise
  */
-int microrl_insert_text(microrl_t* mrl, char* text, int len) {
+microrlr_t microrl_insert_text(microrl_t* mrl, char* text, int len) {
     int i;
     if (mrl->cmdlen + len < MICRORL_CFG_CMDLINE_LEN) {
         if ((mrl->echo == MICRORL_ECHO_ONCE) & (mrl->start_password == -1)) {
@@ -677,9 +685,9 @@ int microrl_insert_text(microrl_t* mrl, char* text, int len) {
         mrl->cursor += len;
         mrl->cmdlen += len;
         mrl->cmdline[mrl->cmdlen] = '\0';
-        return true;
+        return microrlOK;
     }
-    return false;
+    return microrlERR;
 }
 
 /**
@@ -980,7 +988,7 @@ void microrl_insert_char(microrl_t* mrl, int ch) {
                 if (((ch == ' ') && (mrl->cmdlen == 0)) || IS_CONTROL_CHAR(ch)) {
                     break;
                 }
-                if (microrl_insert_text(mrl, (char*)&ch, 1)) {
+                if (microrl_insert_text(mrl, (char*)&ch, 1) == microrlOK) {
                     if (mrl->cursor == mrl->cmdlen) {
                         char nch [] = {0, 0};
                         if ((mrl->cursor >= mrl->start_password) & (mrl->echo == MICRORL_ECHO_ONCE)) {
