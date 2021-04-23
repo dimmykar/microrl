@@ -109,7 +109,7 @@ static char* prompt_default = MICRORL_CFG_PROMPT_STRING;
  */
 static void print_hist(microrl_hist_rbuf_t* prbuf) {
     printf("\n");
-    for (int i = 0; i < MICRORL_CFG_RING_HISTORY_LEN; i++) {
+    for (size_t i = 0; i < MICRORL_CFG_RING_HISTORY_LEN; i++) {
         if (i == prbuf->begin) {
             printf("b");
         } else {
@@ -117,14 +117,14 @@ static void print_hist(microrl_hist_rbuf_t* prbuf) {
         }
     }
     printf("\n");
-    for (int i = 0; i < MICRORL_CFG_RING_HISTORY_LEN; i++) {
+    for (size_t i = 0; i < MICRORL_CFG_RING_HISTORY_LEN; i++) {
         if (isalpha(prbuf->ring_buf[i])) {
             printf("%c", prbuf->ring_buf[i]);
         } else {
             printf("%d", prbuf->ring_buf[i]);
     }
     printf("\n");
-    for (int i = 0; i < MICRORL_CFG_RING_HISTORY_LEN; i++) {
+    for (size_t i = 0; i < MICRORL_CFG_RING_HISTORY_LEN; i++) {
         if (i == prbuf->end) {
             printf("e");
         } else {
@@ -300,7 +300,7 @@ static int hist_restore_line(microrl_hist_rbuf_t* prbuf, char* line, microrl_his
  * \param[in,out]   mrl: \ref microrl_t working instance
  */
 static void restore(microrl_t* mrl) {
-    int iq;
+    size_t iq;
     for (iq = 0; iq < MICRORL_CFG_QUOTED_TOKEN_NMB; ++iq) {
         if (mrl->quotes[iq].end == 0) {
             break;
@@ -343,7 +343,7 @@ static int split(microrl_t* mrl, int limit, const char** tkn_arr) {
         }
 
 #if MICRORL_CFG_USE_QUOTING
-        if (mrl->cmdline[ind] == '\'' || mrl->cmdline[ind] == '"') {
+        if ((mrl->cmdline[ind] == '\'') || (mrl->cmdline[ind] == '"')) {
             if (iq >= MICRORL_CFG_QUOTED_TOKEN_NMB) {
                 restore (mrl);
                 return -1;
@@ -364,7 +364,7 @@ static int split(microrl_t* mrl, int limit, const char** tkn_arr) {
         while (ind < limit) {
             if (mrl->cmdline[ind] == '\0') {
 #if MICRORL_CFG_USE_QUOTING
-                if (!quote) {
+                if (quote == '\0') {
 #endif /* MICRORL_CFG_USE_QUOTING */
                     break;
 #if MICRORL_CFG_USE_QUOTING
@@ -385,7 +385,7 @@ static int split(microrl_t* mrl, int limit, const char** tkn_arr) {
         }
         if (!(ind < limit)) {
 #if MICRORL_CFG_USE_QUOTING
-            if (quote) {
+            if (quote != '\0') {
                 restore(mrl);
                 return -1;
             }
@@ -450,7 +450,8 @@ static char * generate_move_cursor(char* str, int offset) {
     *str++ = '\033';
     *str++ = '[';
     char tmp_str[4] = {0,};
-    int i = 0, j;
+    size_t i = 0;
+	size_t j;
     while (offset > 0) {
         tmp_str[i++] = (offset % 10) + '0';
         offset /= 10;
@@ -499,7 +500,7 @@ static void terminal_print_line(microrl_t* mrl, int pos, int reset) {
 #endif /* MICRORL_CFG_USE_CARRIAGE_RETURN */
         }
 
-        for (int i = pos; i < mrl->cmdlen; i++) {
+        for (size_t i = pos; i < mrl->cmdlen; i++) {
             *j++ = (mrl->cmdline[i] == '\0') ? ' ' : mrl->cmdline[i];
             if ((j - str) == (sizeof(str) - 1)) {
                 *j = '\0';
@@ -672,15 +673,14 @@ static int escape_process(microrl_t* mrl, char ch) {
  * \return          \ref microrlOK on success, \ref microrlERR otherwise
  */
 microrlr_t microrl_insert_text(microrl_t* mrl, char* text, int len) {
-    int i;
-    if (mrl->cmdlen + len < MICRORL_CFG_CMDLINE_LEN) {
+    if ((mrl->cmdlen + len) < MICRORL_CFG_CMDLINE_LEN) {
         if ((mrl->echo == MICRORL_ECHO_ONCE) & (mrl->start_password == -1)) {
             mrl->start_password = mrl->cmdlen;
         }
         memmove(mrl->cmdline + mrl->cursor + len,
                 mrl->cmdline + mrl->cursor,
                 mrl->cmdlen - mrl->cursor);
-        for (i = 0; i < len; i++) {
+        for (size_t i = 0; i < len; i++) {
             mrl->cmdline[mrl->cursor + i] = text[i];
             if (mrl->cmdline[mrl->cursor + i] == ' ') {
                 mrl->cmdline[mrl->cursor + i] = 0;
@@ -733,7 +733,6 @@ static void microrl_delete(microrl_t* mrl) {
  */
 static int common_len(char** arr) {
     size_t i;
-    size_t j;
     char* shortest = arr[0];
     size_t shortlen = strlen(shortest);
 
@@ -745,7 +744,7 @@ static int common_len(char** arr) {
     }
 
     for (i = 0; i < shortlen; ++i) {
-        for (j = 0; arr[j] != 0; ++j) {
+        for (size_t j = 0; arr[j] != 0; ++j) {
             if (shortest[i] != arr[j][i]) {
                 return i;
             }
@@ -781,8 +780,8 @@ static void microrl_get_complite(microrl_t* mrl) {
     restore(mrl);
 #endif /* MICRORL_CFG_USE_QUOTING */
     if (compl_token[0] != NULL) {
-        int i = 0;
-        int len;
+        size_t i = 0;
+        size_t len;
         int pos = mrl->cursor;
 
         if (compl_token[1] == NULL) {
@@ -800,7 +799,7 @@ static void microrl_get_complite(microrl_t* mrl) {
             pos = 0;
         }
 
-        if (len) {
+        if (len != 0) {
             microrl_insert_text(mrl, compl_token[0] + strlen(tkn_arr[status - 1]),
                                 len - strlen(tkn_arr[status - 1]));
             if (compl_token[1] == NULL) {
@@ -863,13 +862,13 @@ static void new_line_handler(microrl_t* mrl) {
  */
 void microrl_insert_char(microrl_t* mrl, int ch) {
 #if MICRORL_CFG_USE_ESC_SEQ
-    if (mrl->escape) {
+    if (mrl->escape != '\0') {
         if (escape_process(mrl, ch)) {
             mrl->escape = 0;
         }
     } else {
 #endif /* MICRORL_CFG_USE_ESC_SEQ */
-        if (ch == MICRORL_KEY_CR || ch == MICRORL_KEY_LF) {
+        if ((ch == MICRORL_KEY_CR) || (ch == MICRORL_KEY_LF)) {
             // Only trigger a newline if ch doen't follow its companion's
             // triggering a newline.
             if (mrl->last_endl == (ch == MICRORL_KEY_CR ? MICRORL_KEY_LF : MICRORL_KEY_CR)) {
@@ -932,7 +931,7 @@ void microrl_insert_char(microrl_t* mrl, int ch) {
             }
             //-----------------------------------------------------
             case MICRORL_KEY_STX: { // ^B
-                if (mrl->cursor) {
+                if (mrl->cursor != 0) {
                     terminal_move_cursor(mrl, -1);
                     mrl->cursor--;
                 }
