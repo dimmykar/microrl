@@ -616,12 +616,16 @@ static int escape_process(microrl_t* mrl, char ch) {
     } else if (mrl->escape_seq == MICRORL_ESC_BRACKET) {
         if (ch == 'A') {
 #if MICRORL_CFG_USE_HISTORY
-            hist_search(mrl, MICRORL_HIST_DIR_UP);
+            if (mrl->echo == MICRORL_ECHO_ON) {
+                hist_search(mrl, MICRORL_HIST_DIR_UP);
+            }
 #endif /* MICRORL_CFG_USE_HISTORY */
             return 1;
         } else if (ch == 'B') {
 #if MICRORL_CFG_USE_HISTORY
-            hist_search(mrl, MICRORL_HIST_DIR_DOWN);
+            if (mrl->echo == MICRORL_ECHO_ON) {
+                hist_search(mrl, MICRORL_HIST_DIR_DOWN);
+            }
 #endif /* MICRORL_CFG_USE_HISTORY */
             return 1;
         } else if (ch == 'C') {
