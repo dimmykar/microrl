@@ -50,20 +50,20 @@ int execute(microrl_t* mrl, int argc, const char* const *argv) {
                     print(mrl, "Enter your password:\r\n");
                     microrl_set_echo(prl, MICRORL_ECHO_ONCE);
                     pass_word = 1;
-                    return 1;
+                    return 0;
                 } else {
                     print(mrl, "Wrong login name. try again.\r\n");
                     return 1;
                 }
             } else {
                 print(mrl, "Enter your login after command login.\r\n");
-                return 1;
+                return 0;
             }
         } else if (pass_word == 1) {
             if (strcmp(argv[i], _PASSWORD) == 0) {
                 print(mrl, "Grate You Log In!!!\r\n");
                 pass_word = 0;
-                return 1;
+                return 0;
             } else {
                 print(mrl, "Wrong password, try log in again.\r\n");
                 pass_word = 0;

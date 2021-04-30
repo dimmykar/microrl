@@ -214,7 +214,7 @@ static void hist_save_line(microrl_hist_rbuf_t* prbuf, char* line, int len) {
 /**
  * \brief           Copy saved line to 'line' and return size of line
  * \param[in]       prbuf: Pointer to \ref microrl_hist_rbuf_t structure
- * \param[out]      line: Restored line from history
+ * \param[out]      line: Line to restore from history
  * \param[in]       dir: Record search direction, member of \ref microrl_hist_dir_t
  * \return          Size of restored line. 0 is returned, if history is empty
  */
@@ -451,7 +451,7 @@ static char * generate_move_cursor(char* str, int offset) {
     *str++ = '[';
     char tmp_str[4] = {0,};
     size_t i = 0;
-	size_t j;
+    size_t j;
     while (offset > 0) {
         tmp_str[i++] = (offset % 10) + '0';
         offset /= 10;
@@ -502,7 +502,7 @@ static void terminal_print_line(microrl_t* mrl, int pos, int reset) {
 
         for (size_t i = pos; i < mrl->cmdlen; i++) {
             *j++ = (mrl->cmdline[i] == '\0') ? ' ' : mrl->cmdline[i];
-            if ((j - str) == (sizeof(str) - 1)) {
+            if ((j - str) == strlen(str)) {
                 *j = '\0';
                 mrl->print(mrl, str);
                 j = str;
@@ -591,9 +591,9 @@ void microrl_set_echo(microrl_t* mrl, microrl_echo_t echo) {
 /**
  * \brief           Restore record to command line from history buffer
  * \param[in,out]   mrl: \ref microrl_t working instance
- * \param[in]       dir: Search direction in history ring buffer
+ * \param[in]       dir: Member of \ref microrl_hist_dir_t enumeration
  */
-static void hist_search(microrl_t* mrl, int dir) {
+static void hist_search(microrl_t* mrl, microrl_hist_dir_t dir) {
     int len = hist_restore_line(&mrl->ring_hist, mrl->cmdline, dir);
     if (len >= 0) {
         mrl->cmdline[len] = '\0';
@@ -862,7 +862,7 @@ static void new_line_handler(microrl_t* mrl) {
  */
 void microrl_insert_char(microrl_t* mrl, int ch) {
 #if MICRORL_CFG_USE_ESC_SEQ
-    if (mrl->escape != '\0') {
+    if (mrl->escape != 0) {
         if (escape_process(mrl, ch)) {
             mrl->escape = 0;
         }

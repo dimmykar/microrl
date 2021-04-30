@@ -46,7 +46,7 @@ extern "C" {
  */
 typedef enum {
     microrlOK = 0x00,                           /*!< Everything OK */
-    microrlERR,
+    microrlERR,                                 /*!< Common error */
     microrlERRPAR,                              /*!< Parameter error */
     microrlERRMEM,                              /*!< Memory error */
 } microrlr_t;
@@ -55,9 +55,9 @@ typedef enum {
  * \brief           ESC seq internal codes
  */
 typedef enum {
-    MICRORL_ESC_BRACKET = 0x01,
-    MICRORL_ESC_HOME,
-    MICRORL_ESC_END
+    MICRORL_ESC_BRACKET = 0x01,                 /*!< Encountered '[' character after ESQ code */
+    MICRORL_ESC_HOME,                           /*!< Encountered 'HOME' code after ESQ code */
+    MICRORL_ESC_END                             /*!< Encountered 'END' code after ESQ code */
 } microrl_esq_code_t;
 
 /**
@@ -86,21 +86,21 @@ struct microrl_quoted_tkn;
  *
  */
 typedef struct microrl_hist_rbuf {
-    char ring_buf[MICRORL_CFG_RING_HISTORY_LEN];
-    int begin;
-    int end;
-    int cur;
+    char ring_buf[MICRORL_CFG_RING_HISTORY_LEN];   /*!< History ring buffer */
+    int begin;                                  /*!< Buffer head position */
+    int end;                                    /*!< Buffer tail position */
+    int cur;                                    /*!< Buffer current position for navigation */
 } microrl_hist_rbuf_t;
 #endif /* MICRORL_CFG_USE_HISTORY || __DOXYGEN__ */
 
 
 #if MICRORL_CFG_USE_QUOTING || __DOXYGEN__
 /**
- * \brief           Quoted token struct, points to begin and end marks
+ * \brief           Quoted tokens structure
  */
 typedef struct microrl_quoted_tkn {
-    char* begin;
-    char* end;
+    char* begin;                                /*!< Pointer to begin mark */
+    char* end;                                  /*!< Pointer to end mark */
 } microrl_quoted_tkn_t;
 #endif /* MICRORL_CFG_USE_QUOTING || __DOXYGEN__ */
 
@@ -109,7 +109,7 @@ typedef struct microrl_quoted_tkn {
  * \param[in,out]   mrl: \ref microrl_t working instance
  * \param[in]       argc: argument count
  * \param[in]       argv: pointer array to token string
- * \return          
+ * \return          '0' on success, '1' otherwise. Not used by library
  */
 typedef int       (*microrl_exec_fn)(struct microrl* mrl, int argc, const char* const *argv);
 
@@ -141,32 +141,41 @@ typedef void      (*microrl_sigint_fn)(struct microrl* mrl);
  * \brief           MicroRL struct, contains internal library data
  */
 typedef struct microrl {
-#if MICRORL_CFG_USE_ESC_SEQ
-    microrl_esq_code_t escape_seq;              /*!< member of \ref microrl_esq_code_t */
-    char escape;
-#endif /* MICRORL_CFG_USE_ESC_SEQ */
-    char last_endl;                             /*!< either 0 or the CR or LF that just triggered a newline */
-#if MICRORL_CFG_USE_HISTORY
-    microrl_hist_rbuf_t ring_hist;              /*!< history object */
-#endif /* MICRORL_CFG_USE_HISTORY */
-    const char* prompt_str;                     /*!< pointer to prompt string */
-    char cmdline[MICRORL_CFG_CMDLINE_LEN];      /*!< cmdline buffer */
-    int cmdlen;                                 /*!< last position in command line */
-    int cursor;                                 /*!< input cursor */
-#if MICRORL_CFG_USE_QUOTING
-    microrl_quoted_tkn_t quotes[_QUOTED_TOKEN_NMB];   /*!< pointers to quoted tokens */
-#endif /* MICRORL_CFG_USE_QUOTING */
-    microrl_exec_fn execute;                    /*!< ptr to 'execute' callback */
-#if MICRORL_CFG_USE_COMPLETE
-    microrl_get_compl_fn get_completion;        /*!< ptr to 'completion' callback */
-#endif /* MICRORL_CFG_USE_COMPLETE */
-    microrl_print_fn print;                     /*!< ptr to 'print' callback */
-#if MICRORL_CFG_USE_CTRL_C
-    microrl_sigint_fn sigint;
-#endif /* MICRORL_CFG_USE_CTRL_C */
-    microrl_echo_t echo;
-    int start_password;                         /*!< position when start printing '*' chars */
-    void* userdata;                             /*!< generic user data storage */
+#if MICRORL_CFG_USE_ESC_SEQ || __DOXYGEN__
+    microrl_esq_code_t escape_seq;              /*!< Member of \ref microrl_esq_code_t */
+    char escape;                                /*!< Escape sequence catched flag */
+#endif /* MICRORL_CFG_USE_ESC_SEQ || __DOXYGEN__ */
+
+    char last_endl;                             /*!< Either 0 or the CR or LF that just triggered a newline */
+
+#if MICRORL_CFG_USE_HISTORY || __DOXYGEN__
+    microrl_hist_rbuf_t ring_hist;              /*!< Ring history object */
+#endif /* MICRORL_CFG_USE_HISTORY || __DOXYGEN__ */
+
+    const char* prompt_str;                     /*!< Pointer to prompt string */
+    char cmdline[MICRORL_CFG_CMDLINE_LEN];      /*!< Command line input buffer */
+    int cmdlen;                                 /*!< Last position in command line */
+    int cursor;                                 /*!< Input cursor */
+
+#if MICRORL_CFG_USE_QUOTING || __DOXYGEN__
+    microrl_quoted_tkn_t quotes[_QUOTED_TOKEN_NMB];   /*!< Pointers to quoted tokens */
+#endif /* MICRORL_CFG_USE_QUOTING || __DOXYGEN__ */
+
+    microrl_exec_fn execute;                    /*!< Command execute callback */
+
+#if MICRORL_CFG_USE_COMPLETE || __DOXYGEN__
+    microrl_get_compl_fn get_completion;        /*!< Auto-completion callback */
+#endif /* MICRORL_CFG_USE_COMPLETE || __DOXYGEN__ */
+
+    microrl_print_fn print;                     /*!< Output print callback */
+
+#if MICRORL_CFG_USE_CTRL_C || __DOXYGEN__
+    microrl_sigint_fn sigint;                   /*!< Ctrl+C terminal signal callback */
+#endif /* MICRORL_CFG_USE_CTRL_C || __DOXYGEN__ */
+
+    microrl_echo_t echo;                        /*!< Member of \ref microrl_echo_t enumeration */
+    int start_password;                         /*!< Start position to print '*' echo off chars */
+    void* userdata;                             /*!< Generic user data storage */
 } microrl_t;
 
 microrlr_t  microrl_init(microrl_t* mrl, microrl_print_fn print);
