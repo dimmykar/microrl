@@ -715,7 +715,7 @@ static void microrl_backspace(microrl_t* mrl, int len) {
  * \param[in,out]   mrl: \ref microrl_t working instance
  */
 static void microrl_delete(microrl_t* mrl) {
-    if (mrl->cmdlen > 0) {
+    if ((mrl->cmdlen > 0) && (mrl->cursor != mrl->cmdlen)) {
       memmove(mrl->cmdline + mrl->cursor,
               mrl->cmdline + mrl->cursor + 1,
               mrl->cmdlen - mrl->cursor + 1);

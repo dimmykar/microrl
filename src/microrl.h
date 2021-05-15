@@ -158,7 +158,7 @@ typedef struct microrl {
     int cursor;                                 /*!< Input cursor */
 
 #if MICRORL_CFG_USE_QUOTING || __DOXYGEN__
-    microrl_quoted_tkn_t quotes[_QUOTED_TOKEN_NMB];   /*!< Pointers to quoted tokens */
+    microrl_quoted_tkn_t quotes[MICRORL_CFG_QUOTED_TOKEN_NMB];   /*!< Pointers to quoted tokens */
 #endif /* MICRORL_CFG_USE_QUOTING || __DOXYGEN__ */
 
     microrl_exec_fn execute;                    /*!< Command execute callback */
